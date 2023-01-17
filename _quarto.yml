@@ -3,16 +3,14 @@ project:
   output-dir: docs
 
 website:
-  title: "Bahman Sadeghi"
-  navbar:
-    left:
-      - href: index.qmd
-        text: Home
-      - about.qmd
+  search: false
+  navbar: false
+  title: ""
+
 
 format:
   html:
-    theme: cosmo
+    theme: cyborg
     css: styles.css
     toc: true
 
