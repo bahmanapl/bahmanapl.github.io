@@ -4,13 +4,27 @@
     "href": "index.html",
     "title": "Bahman Sadeghi",
     "section": "",
-    "text": "Meet Bahman, a software developer passionate for exploring new cultures, languages and foods. With experience living in Asia, North America and Europe, He loves traveling and immersing himself in different ways of life. He considers North California his home. In his free time, you can find him delving into novels, watching captivating TV shows, and expanding his knowledge of deep learning. As a minimalist and follower of Stoic principles, Bahman approaches his personal and professional life with intention and purpose.This bio was written by the help of ChatGPT."
+    "text": "Date\n\n\nTitle\n\n\nAuthor\n\n\n\n\n\n\nFeb 21, 2023\n\n\nPost With Code\n\n\nHarlow Malloc\n\n\n\n\nFeb 18, 2023\n\n\nWelcome To My Blog\n\n\nTristan O’Malley\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "about.html",
     "href": "about.html",
-    "title": "About",
+    "title": "Bahman Sadeghi",
     "section": "",
-    "text": "About this site"
+    "text": "Meet Bahman, a software developer passionate for exploring new cultures, languages and foods. With experience living in Asia, North America and Europe, He loves traveling and immersing himself in different ways of life. He considers North California his home. In his free time, you can find him delving into novels, watching captivating TV shows, and expanding his knowledge of deep learning. As a minimalist and follower of Stoic principles, Bahman approaches his personal and professional life with intention and purpose.This bio was written by the help of ChatGPT."
+  },
+  {
+    "objectID": "posts/post-with-code/index.html",
+    "href": "posts/post-with-code/index.html",
+    "title": "Post With Code",
+    "section": "",
+    "text": "This is a post with executable code."
+  },
+  {
+    "objectID": "posts/welcome/index.html",
+    "href": "posts/welcome/index.html",
+    "title": "Welcome To My Blog",
+    "section": "",
+    "text": "Since this post doesn’t specify an explicit image, the first image in the post will be used in the listing page of posts."
   }
 ]

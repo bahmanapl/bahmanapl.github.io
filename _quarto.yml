@@ -3,11 +3,26 @@ project:
   output-dir: docs
 
 website:
-  search: false
-  navbar: false
-  title: ""
+  title: "Bahman Sadeghi" 
+  site-url: ''
+  description: "This is Bahman Sadeghi's personal Blog."
+  navbar:
+    right:
+      - icon: house-heart
+        href: 'https://github.com/bahmanapl' 
+      - text: About Me
+        href: about.qmd 
+      - icon: github
+        href: ''
+      - icon: twitter
+        href: ''
+      - icon: youtube
+        href: ''
+      
 
+         
 
+          
 format:
   html:
     theme: cyborg
@@ -16,3 +31,14 @@ format:
 
 
 
+    #   - text: Home
+      # - icon: house-heart
+      #   href: index.qmd 
+      # - text: About Me
+      #   href: about.qmd 
+      # - icon: github
+      #   href: ''
+      # - icon: twitter
+      #   href: ''
+      # - icon: youtube
+      #   href: ''

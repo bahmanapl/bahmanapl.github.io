@@ -1,0 +1,8 @@
+---
+title: "Post With Code"
+author: "Harlow Malloc"
+date: "2023-02-21"
+categories: [news, code, analysis]
+---
+
+This is a post with executable code.
