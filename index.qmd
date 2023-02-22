@@ -35,5 +35,3 @@ Meet Bahman, a software developer passionate for exploring new cultures, languag
 <a href="https://www.buymeacoffee.com/bahmansadeghi">
   <img src="/bmc.png" alt="Buy Me a Coffe link" width="250" height="75">
 </a>
-
-
