@@ -7,6 +7,7 @@ website:
   site-url: ''
   description: "This is Bahman Sadeghi's personal Blog."
   navbar:
+    background: success
     right:
       - icon: house-heart
         href: 'https://github.com/bahmanapl' 
@@ -18,10 +19,6 @@ website:
         href: ''
       - icon: youtube
         href: ''
-      
-
-         
-
           
 format:
   html:
@@ -29,16 +26,3 @@ format:
     css: styles.css
     toc: true
 
-
-
-    #   - text: Home
-      # - icon: house-heart
-      #   href: index.qmd 
-      # - text: About Me
-      #   href: about.qmd 
-      # - icon: github
-      #   href: ''
-      # - icon: twitter
-      #   href: ''
-      # - icon: youtube
-      #   href: ''

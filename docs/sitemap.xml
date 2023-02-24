@@ -2,18 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>/index.html</loc>
-    <lastmod>2023-02-22T11:34:15.022Z</lastmod>
+    <lastmod>2023-02-24T18:00:09.438Z</lastmod>
   </url>
   <url>
     <loc>/about.html</loc>
-    <lastmod>2023-02-22T11:23:19.463Z</lastmod>
+    <lastmod>2023-02-24T09:38:49.389Z</lastmod>
   </url>
   <url>
     <loc>/posts/post-with-code/index.html</loc>
-    <lastmod>2023-02-22T11:06:43.737Z</lastmod>
+    <lastmod>2023-02-24T14:59:20.257Z</lastmod>
   </url>
   <url>
     <loc>/posts/welcome/index.html</loc>
     <lastmod>2023-02-22T11:06:53.784Z</lastmod>
+  </url>
+  <url>
+    <loc>/posts/mynotebook/index.html</loc>
+    <lastmod>2023-02-24T14:48:28.265Z</lastmod>
   </url>
 </urlset>
