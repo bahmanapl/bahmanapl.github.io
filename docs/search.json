@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "Bahman Sadeghi",
     "section": "",
-    "text": "Date\n\n\nTitle\n\n\nAuthor\n\n\n\n\n\n\nFeb 21, 2023\n\n\nmy notebook post\n\n\nbahman sadeghi\n\n\n\n\nFeb 21, 2023\n\n\nPost With Code\n\n\nHarlow Malloc\n\n\n\n\nFeb 18, 2023\n\n\nWelcome To My Blog\n\n\nTristan O’Malley\n\n\n\n\n\n\nNo matching items"
+    "text": "Date\n\n\nTitle\n\n\nAuthor\n\n\n\n\n\n\nFeb 27, 2023\n\n\nWelcome To My Blog\n\n\nBahman Sadeghi\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "about.html",
@@ -89,5 +89,12 @@
     "title": "my notebook post",
     "section": "",
     "text": "from pathlib import Path\nimport pickle, gzip, math, os, time, shutil, matplotlib as mpl, matplotlib.pyplot as plt"
+  },
+  {
+    "objectID": "posts/about/index.html",
+    "href": "posts/about/index.html",
+    "title": "Welcome To My Blog",
+    "section": "",
+    "text": "1- Currently I am doing fast AI course part 2. So I do write about it twice a week. One post every mondays one post every Tuesdays.\n2- I am trying something I call 52 projects in 52 weeks. I will write about that too (Without schedule).\n3- Other stuff that not technical , I will write about it , stuff that interest me. (Without schedule)."
   }
 ]
