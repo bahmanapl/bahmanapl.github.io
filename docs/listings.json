@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/Writing stable diffusion from scratch/index.html",
       "/posts/about/index.html"
     ]
   }

@@ -9,12 +9,12 @@ website:
   navbar:
     background: success
     right:
-      - icon: house-heart
-        href: 'https://github.com/bahmanapl' 
+      - text: Home
+        href: index.qmd 
       - text: About Me
         href: about.qmd 
       - icon: github
-        href: ''
+        href: 'https://github.com/bahmanapl'
       - icon: twitter
         href: ''
       - icon: youtube

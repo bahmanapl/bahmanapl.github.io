@@ -13,7 +13,7 @@ about:
       href: https://www.mydopeideas.com
     - text: My Blog
       icon: pencil-square
-      href: https://www.blog.bahmansadeghi.com
+      href: https://www.bahmansadeghi.com
     - text: Email
       icon: envelope
       href: apl.bahman@gmail.com
