@@ -1,0 +1,19 @@
+---
+title: "Welcome To My Blog"
+author: "Bahman Sadeghi"
+date: "2023-2-27"
+categories: [About Here,Indie Projects]
+---
+
+What I write about here ? 
+
+1- Currently I am doing fast AI course part 2. So I do write about it twice a week. 
+One post every mondays one post every Tuesdays.
+
+2- I am trying something I call 52 projects in 52 weeks. I will write about that too
+(Without schedule).
+
+
+3- Other stuff that not technical , I will write about it , stuff that interest me. 
+(Without schedule).
+

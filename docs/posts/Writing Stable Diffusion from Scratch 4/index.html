@@ -1,0 +1,1944 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.1.251">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Bahman Sadeghi">
+<meta name="dcterms.date" content="2023-03-20">
+
+<title>Bahman Sadeghi - Writing Stable Diffusion from Scratch 4</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-6DEHC34SZW"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-6DEHC34SZW', { 'anonymize_ip': true});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Bahman Sadeghi</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html">Home</a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html">About Me</a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../index.xml"><i class="bi bi-rss" role="img">
+</i> 
+ </a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/bahmanapl"><i class="bi bi-github" role="img">
+</i> 
+ </a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/Bahman_Apl"><i class="bi bi-twitter" role="img">
+</i> 
+ </a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#clustering" id="toc-clustering" class="nav-link active" data-scroll-target="#clustering">Clustering</a>
+  <ul class="collapse">
+  <li><a href="#create-data" id="toc-create-data" class="nav-link" data-scroll-target="#create-data">Create data</a></li>
+  <li><a href="#mean-shift" id="toc-mean-shift" class="nav-link" data-scroll-target="#mean-shift">Mean shift</a></li>
+  <li><a href="#animation" id="toc-animation" class="nav-link" data-scroll-target="#animation">Animation</a></li>
+  <li><a href="#gpu-batched-algorithm" id="toc-gpu-batched-algorithm" class="nav-link" data-scroll-target="#gpu-batched-algorithm">GPU batched algorithm</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Writing Stable Diffusion from Scratch 4</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">fastaipart2</div>
+    <div class="quarto-category">Stable-Diffusion</div>
+  </div>
+  </div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Bahman Sadeghi </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 20, 2023</p>
+    </div>
+  </div>
+    
+  </div>
+  
+
+</header>
+
+<p>What you should know and practice after this lecture:<br> 1- Easily plot matrix that is not easily plottable <br> 2- Broadcasting roles <br> 3- Creating sample data <br> 4- meanshift algorithm <br> 5- You can use peresentify to draw on screen <br> 6- Animation</p>
+<section id="clustering" class="level1">
+<h1>Clustering</h1>
+<p>So let’s practice that. That’s practice what we’ve learned. So we’re going to go to zero two meanshift to practice this. And so we’re going to try to exercise our kind of tensor manipulation operation muscles in this section. And the key actually endpoint for this is the homework. And so what you need to be doing is getting yourself to a point that you could implement something like this, but for a different algorithm, why do we care about this? Because this is like learning your times table, your times tables. If you’re doing, you know, mathematics, it’s this kind of like thing that’s going to come up all the time. And if you’re not good at your times, tables, everything else, a lot more, a lot of other things, particularly at primary school and high school, you know, they they get difficult, you get slower and it’s frustrating and you spend time thinking about these mechanical operations rather than getting your work done. It is it’s important that when you have an idea about something you want to try or debug or profile or whatever that you can quickly translate that into working code. And the way that code is written for GPUs or even for fast running on on CPU’s is using broadcasting, Einstein notation ,metrics multiplications and supper important.</p>
+<p>So you’ve got to, you’ve got to go to practice super important. So we’re going to practice it by running, by developing a clustering algorithm. And the clustering algorithm we’re going to work on is something called meanshift clustering, which hopefully you’ve never heard of before. And I say that because I just think it’s a really funny algorithm that not many people have come across. Excuse me, and I think you’ll find it really useful. So what is cluster analysis? Cluster analysis is very different to anything that we’ve worked on in this course so far and that there isn’t a dependent variable that we’re trying to match, but instead we’re just trying to find are there groups of similar things in this data? And those groups we call clusters? And as you can see from the wiki page, there’s all kinds of applications of cluster analysis across many different areas. I will say that sometimes cluster analysis can be overused or misused. It’s really best for when your your various columns are the same kind of thing and have the same kind of scale. For example, pixels are all the same kind of thing. They’re all pixels. So one of the examples they use is market research. So I wouldn’t cluster analysis for sociodemographic inputs because they’re all different kinds of things. But the example they give here makes a lot of sense, which is looking at data from surveys. So if you’ve got a whole bunch of like from 1 to 5 answers on surveys. All right. So let’s take a look at this. And the way I like to build my algorithms is to create some often to create some synthetic data that I know how I want it to behave.</p>
+<p>And so we’re going to create six clusters that each cluster is going to have 750 samples in it. So first of all, I’m going to randomly six centroid. And so the centroid is going to be like the middle of where my clusters are. So I’m going to randomly create them. I need to (n_clusters,2). So I need an X and Y coordinate for each one. And so now I’m going to randomly generate data around those six centroid. Okay. So to do that, I’m going to call a little function I made here called Sample, and I’m going to run it on each of those six centroid and show you what that looks like. So here’s what that data looks like. So the X’s, the six centroid and the colored dots is the data. So if you were given this data without the X’s, the idea would be to come out, come back with figuring out where the X’s would have been, like where are the where are these clustering around? And so if you can get clusters like that, that’s the goal here, is to find out that there’s a fewer discretely, distinctly different types of data in your data set. So for example, for images, I’ve used this before to discover that there are some images that look completely different to all the other ones. For example, they were taken at night time or they’re of a different object or something like that.</p>
+<p>Clustering techniques are unsupervised learning algorithms that try to group unlabelled data into “clusters”, using the (typically spatial) structure of the data itself. It has many <a href="https://en.wikipedia.org/wiki/Cluster_analysis#Applications">applications</a>.</p>
+<p>The easiest way to demonstrate how clustering works is to simply generate some data and show them in action. We’ll start off by importing the libraries we’ll be using today.</p>
+<div class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> math, matplotlib.pyplot <span class="im">as</span> plt, operator, torch</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> functools <span class="im">import</span> partial</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>torch.manual_seed(<span class="dv">42</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>torch.set_printoptions(precision<span class="op">=</span><span class="dv">3</span>, linewidth<span class="op">=</span><span class="dv">140</span>, sci_mode<span class="op">=</span><span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="create-data" class="level2">
+<h2 class="anchored" data-anchor-id="create-data">Create data</h2>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>n_clusters<span class="op">=</span><span class="dv">6</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>n_samples <span class="op">=</span><span class="dv">250</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>To generate our data, we’re going to pick 6 random points, which we’ll call centroids, and for each point we’re going to generate 250 random points about it.</p>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>centroids <span class="op">=</span> torch.rand(n_clusters, <span class="dv">2</span>)<span class="op">*</span><span class="dv">70</span><span class="op">-</span><span class="dv">35</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> torch.distributions.multivariate_normal <span class="im">import</span> MultivariateNormal</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> torch <span class="im">import</span> tensor</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>So how does sample work? Well, we’re passing in the centroid, and so what we want is we’re going to get back. So each of those centroid contains an X in a Y. So multivariate normal is just like normal. It’s going to give you back normally distributed data, but more than one item. That’s why it’s multivariate. And so we passed in two means a main for X and a mean for our Y. And so that’s the mean that we’re going to get. And our standard deviation is going to be five. Why do we use torch.diag(tensor([5.,5.])))? That’s because we’re saying that because that for multivariate normal distributions, there’s not just one standard deviation. Each column that you get back, there could also be a connection between columns. The columns might not be independent. So you actually need so it’s called a covariance matrix, not just to make, not just a variance. We discussed that a little bit more in lesson 9B if you’re interested in learning more about that. Okay, So this is something that’s going to give us back random columns of data with this mean and this standard deviation.</p>
+<p>And this is the number of samples that we want and this is coming from PyTorch. So PyTorch has a whole bunch of different distributions that you can use, which can be very handy. So there is our data. Okay. So remember, for sample clustering, we we don’t know the different colors and we don’t know where the X is. That’s kind of our job is to figure that out. We might just briefly also look at how to plot. So in this case, we want to plot the X s and we want to plot the data so it looks like this. So what I do is I look through each centroid and I grab that centroid samples and they’re just all done in order. So I grab it from i<em>n_samples: to (i+1)</em>n_samples, and then I create a scatterplot with the samples on them. And what I’ve done is I’ve created an axis here and you’ll see y later that we can also pass one in. But I’m not passing one it. And so we create a plot and an axis. And so in that matplotlib, you can keep plotting things on the same axis. So then I plot on the centroid a big x, which is black, and then a smaller x, which is what is that magenta? And so that’s how I get these X’s. So that’s how plot data works. Okay, so how do we create something now that starts with all the dots and returns where the X is are ? We’re going to use a particular algorithm, particular clustering algorithm called meanshift.</p>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sample(m): <span class="cf">return</span> MultivariateNormal(m, torch.diag(tensor([<span class="fl">5.</span>,<span class="fl">5.</span>]))).sample((n_samples,))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="243831a4-aa19-419a-bb85-561826012d77" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>slices <span class="op">=</span> [sample(c) <span class="cf">for</span> c <span class="kw">in</span> centroids]</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> torch.cat(slices)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>data.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="7">
+<pre><code>torch.Size([1500, 2])</code></pre>
+</div>
+</div>
+<p>Below we can see each centroid marked w/ X, and the coloring associated to each respective cluster.</p>
+<div class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_data(centroids, data, n_samples, ax<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> ax <span class="kw">is</span> <span class="va">None</span>: _,ax <span class="op">=</span> plt.subplots()</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, centroid <span class="kw">in</span> <span class="bu">enumerate</span>(centroids):</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>        samples <span class="op">=</span> data[i<span class="op">*</span>n_samples:(i<span class="op">+</span><span class="dv">1</span>)<span class="op">*</span>n_samples]</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>        ax.scatter(samples[:,<span class="dv">0</span>], samples[:,<span class="dv">1</span>], s<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>        ax.plot(<span class="op">*</span>centroid, markersize<span class="op">=</span><span class="dv">10</span>, marker<span class="op">=</span><span class="st">"x"</span>, color<span class="op">=</span><span class="st">'k'</span>, mew<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>        ax.plot(<span class="op">*</span>centroid, markersize<span class="op">=</span><span class="dv">5</span>, marker<span class="op">=</span><span class="st">"x"</span>, color<span class="op">=</span><span class="st">'m'</span>, mew<span class="op">=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="5a1ede84-af40-46a9-cee6-a75fb1fa9e1e" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>plot_data(centroids, data, n_samples)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-10-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+</section>
+<section id="mean-shift" class="level2">
+<h2 class="anchored" data-anchor-id="mean-shift">Mean shift</h2>
+<p>Most people that have come across clustering algorithms have learnt about <strong>k-means</strong>. Mean shift clustering is a newer and less well-known approach, but it has some important advantages: * It doesn’t require selecting the number of clusters in advance, but instead just requires a <strong>bandwidth</strong> to be specified, which can be easily chosen automatically * It can handle clusters of any shape, whereas k-means (without using special extensions) requires that clusters be roughly ball shaped.</p>
+<p>The algorithm is as follows: * For each data point x in the sample X, find the distance between that point x and every other point in X * Create weights for each point in X by using the <strong>Gaussian kernel</strong> of that point’s distance to x * This weighting approach penalizes points further away from x * The rate at which the weights fall to zero is determined by the <strong>bandwidth</strong>, which is the standard deviation of the Gaussian * Update x as the weighted average of all other points in X, weighted based on the previous step</p>
+<p>This will iteratively push points that are close together even closer until they are next to each other.</p>
+<p>And and meanshift is a nice clustering approach because you don’t have to say how many clusters there are. So it’s not that often that you’re actually going to know how many clusters there are. So we don’t have to say quite a few things, like the very popular K means required to say how many in step. You just have to pass them in quite a bandwidth, which we’ll learn about, which can actually be chosen automatically. And it can also handle clusters of any shape so they don’t have to be bold shaped like that. But they are here. They can be kind of like L-shaped or ellipse shaped or whatever. And so here’s what’s going to happen. We’re going to pick some point. So let’s say we pick that point just there. Okay? And so what we now do is we go through each data point, so we pick the first one, and so we then find the distance between that point and every other point. Okay. So we’re going to have to say what is the distance between that point and that point? And point and that point and that point and that point and also the ones further away, that point and that point. And you do it for every single point compared to the one that we’re currently looking at. Okay. So we get all of those as a big list. And now what we’re going to do is we’re going to take a weighted average of all of those points. Now That’s not interesting without the weighting. If we just take our average of all of the points and how far away they are, we’re going to end up somewhere here, right? This is the average of all the points. But the key is that we’re going to take an average and find the right spot. The key is we need to find an average that is weighted by how far away things are.</p>
+<p>So, for example, this one over here is a very long way away from our point of interest. And so it should have a very low weight and the weighted average where else this point here, which is very close, should have a very high weight in our weighted average. So What we do is we create weights for every point compared to the one that we’re currently interested in using a what’s called a Gaussian kernel that we’ll look at. But the key thing to know is that points that are further away from our point of interest, which is this one, are going to have lower weights. That’s what we mean, that they’re penalized. The rate at which weights for a zero is determined by this thing that we set at the start called the bandwidth. And that’s going to be the standard deviation of our Gaussian. So we take an average of all the points in the dataset, a weighted average weighted by how far away they are. So for our point of interest, right, the this point is going to get a big weight. This point is going to get a big weight. This point is going to get a big weight. That point is going to get a tiny weight.</p>
+<p>That point is going to get an even tiny weight. So it’s mainly going to be a weighted average of these points at a nearby. And the weighted average of those points, I would guess, is going to be somewhere around about here. Right. And would have a similar thing for the weighted average of the points near this one. That’s going to probably be somewhere around about here or maybe over here. And so it’s going to move all of these points in closer. It’s almost like a gravity right. They’re kind of going to be moved like closer and closer in towards this kind of gravitational center. And then these ones will go towards their own gravitational center and so forth. Okay.</p>
+<div class="cell" data-outputid="427cd7e5-b2fa-499c-ed18-13756f75c95e" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>midp <span class="op">=</span> data.mean(<span class="dv">0</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>midp</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<pre><code>tensor([ 9.222, 11.604])</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="85393fca-7d90-473e-a8e3-0aaa24afe774" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>plot_data([midp]<span class="op">*</span><span class="dv">6</span>, data, n_samples)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-12-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>So let’s take a look at it. All right. So what’s the gaussian kernel? This is the gaussian kernel, which was a sign in the original March for science back in the days when the idea of not following scientists was considered socially unacceptable. We used to have a March for these things, if you remember. So this is this is not normal. So this is the definition of the gaussian kernel, which is also known as the normal distribution. This is the shape of it. So you’ve seen it before. And here is that formula copied directly off the science match sign. Okay, here we see the square root, two pi, etc..</p>
+<p>So here’s the definition of the gaussian kernel, which you may remember from high school… This person at the science march certainly remembered!</p>
+<p><img src="http://i.imgur.com/nijQLHw.jpg" width="400"></p>
+<p>Okay. And bw is the standard deviation. Now what does that look like? It’s very helpful to have something that we can very quickly plot any function that doesn’t come with matplotlib , but it’s very easy to write one. Just say, oh, let’s as X, let’s use all the numbers from 0 to 10, a hundred of them spaced evenly. That’s what linspace Does. it linearly spaced 100 numbers in this range. That’s going to be our Xs. So plot those Xs and plot F of X is the Ys. So here’s a very nice little plot_func, we want. And here it is. And as you can see here, we’ve now got something where if you are this like very close to the point of interest, you’re going to get a very high weight. And if you’re a long way away from the point of interest, you’ll get a very low weight. So that’s the key thing that we wanted to remember is something that penalizes further away points more. Now, you’ll notice here I’ve managed to plot this function for a bandwidth of 2.5, and the way I did that was using this special thing from functools(functools.partial), . Now, the first thing to point out here is that very often drives me crazy. I see people trying to find out what something is in Jupiter, and the way they do it is they’ll scroll up to the top of the notebook and search through the imports and try to find it. That is the dumb way to do it. The smart way to do it is just to type it and press shift enter and it’ll tell you where it comes from and you can get its help with Question Mark and you can get it also source code with two question marks. Okay, So just type it to find out where it comes from. Okay. So this is as Sylver mentioned in the chat, also known as carrying or partial function application. This creates a new function. So let’s just grab it. We create a new function. And this function F is is the function Gaussian, but it’s going to automatically pass. BW equals 2.5. So this is a partially applied function.</p>
+<div class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> gaussian(d, bw): <span class="cf">return</span> torch.exp(<span class="op">-</span><span class="fl">0.5</span><span class="op">*</span>((d<span class="op">/</span>bw))<span class="op">**</span><span class="dv">2</span>) <span class="op">/</span> (bw<span class="op">*</span>math.sqrt(<span class="dv">2</span><span class="op">*</span>math.pi))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_func(f):</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> torch.linspace(<span class="dv">0</span>,<span class="dv">10</span>,<span class="dv">100</span>)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    plt.plot(x, f(x))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="445f4c42-fbdf-4a26-e94d-661dadfa1808" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>plot_func(partial(gaussian, bw<span class="op">=</span><span class="fl">2.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-15-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>So I could type f of four f(tensor(4.0)), for example, that’s going to be a tensor. There we go. And you can see that’s exactly what this is got to for across. Yep, about .44. So we use partial function application all the time. It’s a very, very, very important tool. Without it, for example, plotting this function would have been more complicated with it. It was trivially easy. I guess the alternative, like one alternative which would be fine but slightly more clunky, would be we could create a little function in line so we could have said, Oh, plot a function. Then I’m going to define right now, which is called lamb, which is lambda X, which is Gaussian and of X with a bandwidth of 2.5. You could do that too. You know, it’s it’s fine, but, but yeah, partials I think are a bit neater, a bit less to think about.</p>
+<p>They often produce some nature and clearer code. Okay. Why did we decide to make the bandwidth 2.5 as a as a rule of thumb, choose a bandwidth which covers about a third of the data. So if we kind of found ourselves somewhere over here, write a bandwith which covers about a third of the data would be enough to cover two clusters ish. So it would be kind of like this big. So somewhere in the middle there. So that’s the basic idea. Yeah. So but you can play around with bandwidth and get different amounts of clusters. I should mention, like often when you see something that’s kind of on the complicated side, like a Gaussian, you can often simplify things. I think most implementations and write ups I’ve seen talk about using Gaussians, but if you look at the shape of it, it looks a lot like this shape. So this is a triangular weighting which is just using clamp_min So it’s just using a linear with clamp_min And yeah, it occurred to me that we could probably use this just as well. So I did find it.</p>
+<p>I decided to define this triangular weighting and then we can try both anyway. So I will start with we’re going to use the Gaussian version. All right. So we’re going to be move literally moving all the points towards the kind of center of gravity.</p>
+<div class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>f <span class="op">=</span> partial(gaussian,bw<span class="op">=</span><span class="fl">2.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="437061db-02b8-4824-a64d-53bb919f733e" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>f(tensor(<span class="fl">4.0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="16">
+<pre><code>tensor(0.044)</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="101ea1e0-1f11-4572-a0f3-78e921713daf" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>partial</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="17">
+<pre><code>functools.partial</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="92d41787-945e-432a-aa57-c5f928c8001b" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>plot_func(<span class="kw">lambda</span> x : gaussian(x,bw<span class="op">=</span><span class="fl">2.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-19-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>In our implementation, we choose the bandwidth to be 2.5.</p>
+<p>One easy way to choose bandwidth is to find which bandwidth covers one third of the data.</p>
+<div class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> tri(d, i): <span class="cf">return</span> (<span class="op">-</span>d<span class="op">+</span>i).clamp_min(<span class="dv">0</span>)<span class="op">/</span>i</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="6b147e56-6557-4bbf-9969-bdd33bef553b" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>plot_func(partial(tri, i<span class="op">=</span><span class="dv">8</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-21-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>So we don’t want to mess up our original data so we clone it. It’s a PyTorch thing is .clone (data.clone()), it’s very handy. And so Big X is our matrix of data. I mean, it’s actually a That’s right. Matrix of data. Yeah. And then little x will be our first point. And it’s pretty common to use big X a capital letters for matrices. So this is our data. This is the first point.</p>
+<p>Okay. So there it is. We’re going to start at 26.2, 26.3. So 26.2, 26.3. So somewhere up here, so little x, its shape is just it’s a rank one tensor of shape two. Big X is a rank two tensor of 1500 data points by two, the X and Y. And if we call x[None], that would add a unit axis to that. And the reason I’m going to show you that is because we want to find the distance from little x to everything in Big X and the way we do a distance is with minus, but you wouldn’t be able to go, you wouldn’t be able to go X minus big X and get the right actually to you get the right answer. Let’s think about that X shape. Oh, we’ve got that already. I know actually that is going to work isn’t it? So, yes. All right. So you can see why we’ve got these two versions here. If we do x[None], we’ve got something of shape. One comma, two. Now we can subtract that from something, a shape 1500 comma two, because the twos match up because they’re the same and the 1500 and the one matches up because we remember our Numpy roles, everything matches up to a unit axis. So it’s going to copy this matrix across every of this matrix and it works.</p>
+<p>But you remember there’s a special trick which is if you’ve got two shapes of different lengths, we can use the shorter length and it’s going to add unit axes to the front to make it as long as necessary. So we actually don’t need the x[None]. We can just use little x and it works because it’s going to say, is this compatible with this? Well, the last axis, remember we go right to left the last axis matches the second last axis, Oh, it doesn’t exist. So we pretend that there’s a unit axis, and so it’s going to do exactly the same thing as this. So if you have not studied the broadcasting from last week carefully, that might not have made a lot of sense to you. And so definitely at this point, you might want to pause the video and go back and reread the NumPy broadcasting rules from last time and practice them because that’s what we just did. We use numpy broadcasting rules and we’re going to be doing this dozens more times throughout the rest of the course and many more times, in fact, in this lesson.</p>
+<div class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> data.clone()</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> data[<span class="dv">0</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="9c3b8cee-a5d1-4b89-d164-6cea5bed47b6" data-execution_count="22">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>x</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="22">
+<pre><code>tensor([26.204, 26.349])</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="b6fea91b-e6d8-4a5c-9bcd-6cfff5e8e345" data-execution_count="23">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>x.shape,X.shape,x[<span class="va">None</span>].shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="23">
+<pre><code>(torch.Size([2]), torch.Size([1500, 2]), torch.Size([1, 2]))</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="dab439e5-94cc-4ab8-ed7e-78c6be77e732" data-execution_count="24">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>x<span class="op">-</span>X</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="24">
+<pre><code>tensor([[ 0.000,  0.000],
+        [ 0.513, -3.865],
+        [-4.227, -2.345],
+        ...,
+        [-4.568, 17.025],
+        [-3.151, 22.389],
+        [-4.964, 21.040]])</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="aa7ec304-366a-4420-dcf2-da3a6ab1f456" data-execution_count="25">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>(x[<span class="va">None</span>]<span class="op">-</span>X)[:<span class="dv">8</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="25">
+<pre><code>tensor([[ 0.000,  0.000],
+        [ 0.513, -3.865],
+        [-4.227, -2.345],
+        [ 0.557, -3.685],
+        [-5.033, -3.745],
+        [-4.073, -0.638],
+        [-3.415, -5.601],
+        [-1.920, -5.686]])</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="af3fb5c7-a479-496f-da59-de2f1c6d1fe3" data-execution_count="26">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>(x<span class="op">-</span>X)[:<span class="dv">8</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="26">
+<pre><code>tensor([[ 0.000,  0.000],
+        [ 0.513, -3.865],
+        [-4.227, -2.345],
+        [ 0.557, -3.685],
+        [-5.033, -3.745],
+        [-4.073, -0.638],
+        [-3.415, -5.601],
+        [-1.920, -5.686]])</code></pre>
+</div>
+</div>
+<p>Hi, Dan, The thing I’m using to write on the screen is called presentify.It’s this thing here. It’s very cool. And a graphics tablet graphics tablets are quite cheap nowadays. Oh, excuse me. I use a cheap Chinese equivalent of a webcam on tablet. All right. Hi, everybody. Welcome back. So we had got to the point where we had managed to get the distance between our first point x and all of the other points in the data. And so just looking at the first eight of them here. So the very first instance is of course zero on the X axis and zero on the Y axis because it is the first point. The other thing is that because we the way we created the clusters is they’re all kind of next to each other in the list. So these are all in the first cluster. So none of them are too far away from each other. So now that we’ve got all the distances, it’s easy enough to, well, not the distances on X and Y, it’s easy enough to get the distance, the kind of Euclidean distance, so we can just square their difference and sum and square root. And actually maybe this is a good time to talk about norms and to talk about what we just did there. Um, so we’ve got all these data points. So here’s one of our data points and here’s the other one of our data points, and there’s some, you know, distance across the X axis and there’s some distance along the Y axis. So we could call that change in X and change in Y.</p>
+<p>And one way to think about this distance then is it’s this distance here. So to calculate that we couldn’t use Pythagoras, so a squared plus b squared equals C squared or in our case so this would be c, a, and b, so, so in our case it would be the square root of the change in X squared plus the change in Y squared. And rather than saying square root, we could say to the power of a half another way of saying the same thing. But there’s a different way we could find the distance. We could first go along here and then go up here. And so that one would be change in X, if you like, to the one plus change in Y to the one to the power of one one. Yeah, I got a slightly odd way for reasons you’ll see in a moment. It’s just this otherwise, in general, if we’ve got a whole list of numbers, we can add them up. Let’s say they’re some list V, we can add them up, we can do each one to the power of some number alpha and take that sum to the one over alpha. And this thing here is called a norm. So you might have remember we came across that last week and we come across it again this week. They basically come up, I don’t know, they might end up coming up every week.</p>
+<p>They come up all the time, particularly because the two norm, which we could write like this or we could write like this or we could write like this, they’re all the two norm this is just saying it’s this equation for alpha equals two And Stefano is pointing out we should actually have an absolute value. I’m not going to worry about that. We’re just doing real numbers. So I keep things simple. Oh, I guess first higher than one. Now you’re probably right for something like three. Yeah, I guess we do need an absolute value there. That’s a good point because okay, we could have this one. And so the distance actually has to be the absolute value. So the change in x is the absolute value of that distance. Yes. Thank you, Stefano. Okay. So we’ll have the absolute value. Okay. So the two, norm, is what happens when every calls to and we would call this in this case, we would call this the Euclidean distance. But actually where it comes up more often is when you’re doing like a lost function.</p>
+<p>So the mean squared error is just while the root means squared error, I should say, is just the two norm. Where else the mean absolute error is the one norm. And these are also known as L2 and L1. And remember what we saw in that paper last week. We saw it in this form. There’s a two up here which is where they got rid of the square root again. So would have just been a change in x squared plus change in Y squared. And now we don’t even need the parentheses. Okay, so all of this is to say that for, you know, this comes up all the time because we’re very, very often interested in distances and errors and things like that. I’m trying to think I don’t feel like I’ve ever seen anything other than one or two. So although it is a general concept, I don’t think we’re going to see probably things other than one or two in this course. I’d be excited if we do, that would be kind of cool. So here we’re taking the Euclidean distance, which is the two on. So this has got eight things in it because we’ve summed it over dimension one. So here’s your first homework is to rewrite using torch.einsum, you won’t be able to get rid of the x minus x. You’ll still need to have that in there.</p>
+<p>But when you’ve got a multiply followed by a sum, now you want to get rid of the square root. Either you should be able to get rid of the multiply in the sum by doing it in a single torch.einsum. So we’re summing up over the first dimension, which is this dimension. So in other words, with summing up the X in the Y axis, okay, so now we can get the, the weights by passing those distance is into our gaussian. And so as we would expect, the biggest weights, it gets up 0.16. So the closest one is itself, it’s going to be at a big weight. These other ones get reasonable weights and the ones that are in totally different clusters have weights small enough that at three significant figures they appear to be zero. Okay, so we’ve got our weights. So there the weights are 1500 long vector and of course our original data is 1500 by two, the X and the Y for each one. So we now want a weighted average. We want this data, we want it’s average weighted by this. So normally an average is the sum of your data divided by the count. That’s a normal average weighted average item in your data. It’s let’s put some i’s around here. Just to be more clear, each item in your data is going to have a different weight. And so you multiply each one by the weights. And so rather than dividing by n, which is just the sum of ones, we would divide by the sum of weights. So is an important concept to be familiar with. Weighted averages. So we need to multiply every one of these x says by this.</p>
+<div class="cell" data-outputid="12046b01-12b2-4e33-8cb2-6f38ee857412" data-execution_count="27">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># rewrite using torch.einsum</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>dist <span class="op">=</span> ((x<span class="op">-</span>X)<span class="op">**</span><span class="dv">2</span>).<span class="bu">sum</span>(<span class="dv">1</span>).sqrt()</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>dist[:<span class="dv">8</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="27">
+<pre><code>tensor([0.000, 3.899, 4.834, 3.726, 6.273, 4.122, 6.560, 6.002])</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="2b7854de-f3b7-4604-a2db-e2094338ccea" data-execution_count="28">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>weight <span class="op">=</span> gaussian(dist, <span class="fl">2.5</span>)</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>weight</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="28">
+<pre><code>tensor([    0.160,     0.047,     0.025,  ...,     0.000,     0.000,     0.000])</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="e4b05523-7b9c-4e70-a02c-d3304d14cc0a" data-execution_count="29">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>weight.shape,X.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="29">
+<pre><code>(torch.Size([1500]), torch.Size([1500, 2]))</code></pre>
+</div>
+</div>
+<p>Okay, so can we say weights times X? No.&nbsp;All right. Why didn’t that work? So remember, we go right to left. So first of all, it’s going to say, let’s look at the two and multiply that by the 15. Are they compatible? Things are compatible if they’re equal or if at least one of them is one. These are not equal and they’re not one, so they’re not compatible. That’s why it says the size of a tensor a, must match. Now, when it says match, it doesn’t mean they have to be the same. One of them can be one. Okay. That’s what it means to match. They’re either or. One of them is one. So that doesn’t work. On the other hand, what if this was 1500 comma one? If it was 1500 comma one, then they would match because the one and the two match because one of them’s a unit axis and the 1500 and the 1500 match because they had the same. So that’s what we’re going to do because that would then copy this to every one of these, which is what we want. We want weights for each of these (x,y) tuples. So to add the trailing unit axis, we say every row and a trailing unit axis.(weight[:,None]*X) So that’s what that shape looks like. So we can then multiply that by x and as you can see, it’s now weighting each of them. And so each of these x’s and y is down the bottom, they’re all zero. So we can sum that up and then divide by the sum of weights. So let’s now write a function that puts all this together so you can see this really important way of like to me, the only way that makes sense to do a particularly scientific numerical programing.</p>
+<p>I actually do all my programing this way, but particularly scientific numerical programing is write it all out step by step, check every piece, have it all that documented for you and for others, and then copy the cells, merge them together and indent them to indent its control+right+spare bracket and put a function header on top. So here’s all those things we just did. And now, rather than just grabbing the first x, we enumerate through all of them. So that’s the distance we had before. That’s the weight we had before. There’s the product we had before. And then finally some across the rows divide by the sum of the weights. So that’s going to calculate for i<code>s It's going to move. So it's actually changing Capital X, so it's changing the i</code>s thing and capital X so that it’s now the weighted sum. Oh, actually sorry, the weighted average of all of the other data weighted by how far it is away. So that’s going to do a single step. So the main shift update is extremely straightforward, which is clone the data, iterate a few times and do the update. So if we run it, take 600 milliseconds. And what I’ve done is I’ve plotted the centroid moved by two pixels or two one up two pixels, two units so that you can see them and so you can see the dots is where our data is. And they’re dots now because every single data point is on top of each other on a cluster. And so you can see they are now in the correct spots. So it is successfully clustered our data.</p>
+<div class="cell" data-outputid="0ec63e44-6ebc-42d2-cab2-19020bb34ab4" data-execution_count="30">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>weight</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="30">
+<pre><code>tensor([    0.160,     0.047,     0.025,  ...,     0.000,     0.000,     0.000])</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="6b9dbd87-75d2-414d-8734-003c4302f02d" data-execution_count="31">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>weight[:,<span class="va">None</span>].shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="31">
+<pre><code>torch.Size([1500, 1])</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="abffca88-c6a7-4a8a-f0d1-1d606ea897f7" data-execution_count="32">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>weight[:,<span class="va">None</span>]<span class="op">*</span>X</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="32">
+<pre><code>tensor([[    4.182,     4.205],
+        [    1.215,     1.429],
+        [    0.749,     0.706],
+        ...,
+        [    0.000,     0.000],
+        [    0.000,     0.000],
+        [    0.000,     0.000]])</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="33">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> one_update(X):</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, x <span class="kw">in</span> <span class="bu">enumerate</span>(X):</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>        dist <span class="op">=</span> torch.sqrt(((x<span class="op">-</span>X)<span class="op">**</span><span class="dv">2</span>).<span class="bu">sum</span>(<span class="dv">1</span>))</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a><span class="co">#         weight = gaussian(dist, 2.5)</span></span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>        weight <span class="op">=</span> tri(dist, <span class="dv">8</span>)</span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>        X[i] <span class="op">=</span> (weight[:,<span class="va">None</span>]<span class="op">*</span>X).<span class="bu">sum</span>(<span class="dv">0</span>)<span class="op">/</span>weight.<span class="bu">sum</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="34">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> meanshift(data):</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> data.clone()</span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> it <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">5</span>): one_update(X)</span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> X</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="c3f734a1-282a-4114-83dd-ebc566ba46e6" data-execution_count="35">
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>time X<span class="op">=</span>meanshift(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>CPU times: user 1.3 s, sys: 13.4 ms, total: 1.32 s
+Wall time: 1.44 s</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="f754867f-81e7-422a-d706-dd4f197e6cdd" data-execution_count="36">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>plot_data(centroids<span class="op">+</span><span class="dv">2</span>, X, n_samples)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-37-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>So that’s great news. And so we could test out our hypothesis. Could we use triangular just as well as we could have used Gaussian. So control slash comments and on comments, yeah, we got exactly the same results. So that’s good. It’s really important to know these keyboard shortcuts hit H to get a list of them. Some things that are really important don’t have keyboard shortcuts. So if you click help edit keyboard shortcuts. This list of all the things Jupyter can do and you can add keyboard shortcuts to things that don’t have them. So for example, I always add keyboard shortcuts to run all cells above and run all cells below. As you can see, I type Q and then A for above and Q and then B for below. All right. Now that was kind of boring in a way, because it did five steps, but we just saw the result. What did it look like? One step at a time. This isn’t just fun. It’s really important to be able to see things happening one step at a time because there are so many algorithms we do which are like updating weights or updating data, you know? So for stable diffusion, for example, very likely to want to show, you know, your incrementally denoising and so forth. So in my opinion, it’s important to know how to do animations. And I found the documentation for this unnecessarily complicated because it’s a lot of it’s about how to make them performant. But most of the time we probably don’t care too much about that. So I want to show you a little trick, a simple way to create animations without any trouble. So that matplotlib animation has something called FuncAnimation. That’s what we’re going to use to create an animation. You have to create a function and the function you’re going to be calling FuncAnimation passing in the name of that function and saying how many times to run it. And that’s what this frames the argument that says run this function this many times and then create an animation that that basically contains the result of that with a 500 millisecond interval between each one. So what’s this do one going to do to create one frame of animation? We will call our one_update.</p>
+<p>Here it is one_update, right? We’re going to call this that’s going to update our access and then we’re going to have an access which we’ve created here. So we’re going to clear whatever was on the plot before and plot our new data on that access. And then the only other thing you need to do is that the very first time it calls it, we want to plot it before running and d is going to be passed automatically the frame number. So for the zeroth frame, we’re going to not do the update, but it’s going to plot the data as it is already. I guess another way we could have done that would have been just to say if d then do the update the update, I suppose that should work too. Maybe it’s even simpler. Let’s see if I just break it. Okay So we’re going to clone our data. We’re going to create our figure in our subplots vertical FuncAnimation calling do_one 5 times, and then we’re going to display the animation. And so let’s see, so HTML takes some HTML and displays it and to_jshtml(), creates some HTML.</p>
+<p>So that’s why it’s created. This HTML includes JavaScript. And so I click run one, two, three, four, five. That’s the five steps. So if I click loop, you’ll see them running again and again. Fantastic. So that’s how easy it is to create a matplotlib animation. So hopefully now you can use that to play around with some fun stable fusion animations as well. You don’t just have to use to to_jshtml. You can also create Oopsie Daisy. You can also create movies. For example. So you can call to_html5_video would be another option. And you can save an animation as a movie file. So this okay, all these different options for that, but hopefully that’s enough to get you started. So for your homework, I would like you when you create your k means or whatever, to try to create your own animation or create an animation of some stable diffusion thing that you’re playing with. So don’t forget this important ax.chear().without the ax.chear(), it prints it on top of the last one, which sometimes is what you want To be fair. But in this case, it’s not what I wanted. All right, So kind of slow half a second for not that much data, I’m sure would be nice. It was faster. Well, the good news is we can GPU accelerate it. The bad news is it’s not going to GPU You accelerate that Well, because of this loop, this is looping 1500 times. If we so looping is not going to run on the GPU.</p>
+</section>
+<section id="animation" class="level2">
+<h2 class="anchored" data-anchor-id="animation">Animation</h2>
+<div class="cell" data-execution_count="37">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib.animation <span class="im">import</span> FuncAnimation</span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> HTML</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="38">
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> do_one(d):</span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> d: one_update(X)</span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>    ax.clear()</span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>    plot_data(centroids<span class="op">+</span><span class="dv">2</span>, X, n_samples, ax<span class="op">=</span>ax)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="57264969-faa1-4492-f1d3-ce0ace89a615" data-execution_count="39">
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create your own animation</span></span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> data.clone()</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>fig,ax <span class="op">=</span> plt.subplots()</span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>ani <span class="op">=</span> FuncAnimation(fig, do_one, frames<span class="op">=</span><span class="dv">5</span>, interval<span class="op">=</span><span class="dv">500</span>, repeat<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>plt.close()</span>
+<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>HTML(ani.to_jshtml())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="39">
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+<script language="javascript">
+  function isInternetExplorer() {
+    ua = navigator.userAgent;
+    /* MSIE used to detect old browsers and Trident used to newer ones*/
+    return ua.indexOf("MSIE ") > -1 || ua.indexOf("Trident/") > -1;
+  }
+
+  /* Define the Animation class */
+  function Animation(frames, img_id, slider_id, interval, loop_select_id){
+    this.img_id = img_id;
+    this.slider_id = slider_id;
+    this.loop_select_id = loop_select_id;
+    this.interval = interval;
+    this.current_frame = 0;
+    this.direction = 0;
+    this.timer = null;
+    this.frames = new Array(frames.length);
+
+    for (var i=0; i<frames.length; i++)
+    {
+     this.frames[i] = new Image();
+     this.frames[i].src = frames[i];
+    }
+    var slider = document.getElementById(this.slider_id);
+    slider.max = this.frames.length - 1;
+    if (isInternetExplorer()) {
+        // switch from oninput to onchange because IE <= 11 does not conform
+        // with W3C specification. It ignores oninput and onchange behaves
+        // like oninput. In contrast, Microsoft Edge behaves correctly.
+        slider.setAttribute('onchange', slider.getAttribute('oninput'));
+        slider.setAttribute('oninput', null);
+    }
+    this.set_frame(this.current_frame);
+  }
+
+  Animation.prototype.get_loop_state = function(){
+    var button_group = document[this.loop_select_id].state;
+    for (var i = 0; i < button_group.length; i++) {
+        var button = button_group[i];
+        if (button.checked) {
+            return button.value;
+        }
+    }
+    return undefined;
+  }
+
+  Animation.prototype.set_frame = function(frame){
+    this.current_frame = frame;
+    document.getElementById(this.img_id).src =
+            this.frames[this.current_frame].src;
+    document.getElementById(this.slider_id).value = this.current_frame;
+  }
+
+  Animation.prototype.next_frame = function()
+  {
+    this.set_frame(Math.min(this.frames.length - 1, this.current_frame + 1));
+  }
+
+  Animation.prototype.previous_frame = function()
+  {
+    this.set_frame(Math.max(0, this.current_frame - 1));
+  }
+
+  Animation.prototype.first_frame = function()
+  {
+    this.set_frame(0);
+  }
+
+  Animation.prototype.last_frame = function()
+  {
+    this.set_frame(this.frames.length - 1);
+  }
+
+  Animation.prototype.slower = function()
+  {
+    this.interval /= 0.7;
+    if(this.direction > 0){this.play_animation();}
+    else if(this.direction < 0){this.reverse_animation();}
+  }
+
+  Animation.prototype.faster = function()
+  {
+    this.interval *= 0.7;
+    if(this.direction > 0){this.play_animation();}
+    else if(this.direction < 0){this.reverse_animation();}
+  }
+
+  Animation.prototype.anim_step_forward = function()
+  {
+    this.current_frame += 1;
+    if(this.current_frame < this.frames.length){
+      this.set_frame(this.current_frame);
+    }else{
+      var loop_state = this.get_loop_state();
+      if(loop_state == "loop"){
+        this.first_frame();
+      }else if(loop_state == "reflect"){
+        this.last_frame();
+        this.reverse_animation();
+      }else{
+        this.pause_animation();
+        this.last_frame();
+      }
+    }
+  }
+
+  Animation.prototype.anim_step_reverse = function()
+  {
+    this.current_frame -= 1;
+    if(this.current_frame >= 0){
+      this.set_frame(this.current_frame);
+    }else{
+      var loop_state = this.get_loop_state();
+      if(loop_state == "loop"){
+        this.last_frame();
+      }else if(loop_state == "reflect"){
+        this.first_frame();
+        this.play_animation();
+      }else{
+        this.pause_animation();
+        this.first_frame();
+      }
+    }
+  }
+
+  Animation.prototype.pause_animation = function()
+  {
+    this.direction = 0;
+    if (this.timer){
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+  }
+
+  Animation.prototype.play_animation = function()
+  {
+    this.pause_animation();
+    this.direction = 1;
+    var t = this;
+    if (!this.timer) this.timer = setInterval(function() {
+        t.anim_step_forward();
+    }, this.interval);
+  }
+
+  Animation.prototype.reverse_animation = function()
+  {
+    this.pause_animation();
+    this.direction = -1;
+    var t = this;
+    if (!this.timer) this.timer = setInterval(function() {
+        t.anim_step_reverse();
+    }, this.interval);
+  }
+</script>
+
+<style>
+.animation {
+    display: inline-block;
+    text-align: center;
+}
+input[type=range].anim-slider {
+    width: 374px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.anim-buttons {
+    margin: 8px 0px;
+}
+.anim-buttons button {
+    padding: 0;
+    width: 36px;
+}
+.anim-state label {
+    margin-right: 8px;
+}
+.anim-state input {
+    margin: 0;
+    vertical-align: middle;
+}
+</style>
+
+<div class="animation">
+  <img id="_anim_imge412bc04d7f74f1e9ef729c5e2e62c22">
+  <div class="anim-controls">
+    <input id="_anim_slidere412bc04d7f74f1e9ef729c5e2e62c22" type="range" class="anim-slider" name="points" min="0" max="1" step="1" value="0" oninput="anime412bc04d7f74f1e9ef729c5e2e62c22.set_frame(parseInt(this.value));">
+    <div class="anim-buttons">
+      <button title="Decrease speed" aria-label="Decrease speed" onclick="anime412bc04d7f74f1e9ef729c5e2e62c22.slower()">
+          <i class="fa fa-minus"></i></button>
+      <button title="First frame" aria-label="First frame" onclick="anime412bc04d7f74f1e9ef729c5e2e62c22.first_frame()">
+        <i class="fa fa-fast-backward"></i></button>
+      <button title="Previous frame" aria-label="Previous frame" onclick="anime412bc04d7f74f1e9ef729c5e2e62c22.previous_frame()">
+          <i class="fa fa-step-backward"></i></button>
+      <button title="Play backwards" aria-label="Play backwards" onclick="anime412bc04d7f74f1e9ef729c5e2e62c22.reverse_animation()">
+          <i class="fa fa-play fa-flip-horizontal"></i></button>
+      <button title="Pause" aria-label="Pause" onclick="anime412bc04d7f74f1e9ef729c5e2e62c22.pause_animation()">
+          <i class="fa fa-pause"></i></button>
+      <button title="Play" aria-label="Play" onclick="anime412bc04d7f74f1e9ef729c5e2e62c22.play_animation()">
+          <i class="fa fa-play"></i></button>
+      <button title="Next frame" aria-label="Next frame" onclick="anime412bc04d7f74f1e9ef729c5e2e62c22.next_frame()">
+          <i class="fa fa-step-forward"></i></button>
+      <button title="Last frame" aria-label="Last frame" onclick="anime412bc04d7f74f1e9ef729c5e2e62c22.last_frame()">
+          <i class="fa fa-fast-forward"></i></button>
+      <button title="Increase speed" aria-label="Increase speed" onclick="anime412bc04d7f74f1e9ef729c5e2e62c22.faster()">
+          <i class="fa fa-plus"></i></button>
+    </div>
+    <form title="Repetition mode" aria-label="Repetition mode" action="#n" name="_anim_loop_selecte412bc04d7f74f1e9ef729c5e2e62c22" class="anim-state">
+      <input type="radio" name="state" value="once" id="_anim_radio1_e412bc04d7f74f1e9ef729c5e2e62c22" checked="">
+      <label for="_anim_radio1_e412bc04d7f74f1e9ef729c5e2e62c22">Once</label>
+      <input type="radio" name="state" value="loop" id="_anim_radio2_e412bc04d7f74f1e9ef729c5e2e62c22">
+      <label for="_anim_radio2_e412bc04d7f74f1e9ef729c5e2e62c22">Loop</label>
+      <input type="radio" name="state" value="reflect" id="_anim_radio3_e412bc04d7f74f1e9ef729c5e2e62c22">
+      <label for="_anim_radio3_e412bc04d7f74f1e9ef729c5e2e62c22">Reflect</label>
+    </form>
+  </div>
+</div>
+
+
+<script language="javascript">
+  /* Instantiate the Animation class. */
+  /* The IDs given should match those used in the template above. */
+  (function() {
+    var img_id = "_anim_imge412bc04d7f74f1e9ef729c5e2e62c22";
+    var slider_id = "_anim_slidere412bc04d7f74f1e9ef729c5e2e62c22";
+    var loop_select_id = "_anim_loop_selecte412bc04d7f74f1e9ef729c5e2e62c22";
+    var frames = new Array(5);
+    
+  frames[0] = "data:image/png;base64,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\
+ZSD5FvUAAAAASUVORK5CYII=\
+"
+  frames[1] = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAbAAAAEgCAYAAADVKCZpAAAAOXRFWHRTb2Z0d2FyZQBNYXRwbG90\
+bGliIHZlcnNpb24zLjcuMSwgaHR0cHM6Ly9tYXRwbG90bGliLm9yZy/bCgiHAAAACXBIWXMAAAsT\
+AAALEwEAmpwYAAAkjElEQVR4nO3dfXxU5Z338c/IECQgBsJTJqEmIQxCMKAGUGs1U4hW5YYoinjT\
+u4iUsatuWeytsrvdJtnVwrrbontXWwcVae0LXmoxWGhhRRLrAxpDBSoUJmKyJpmQhiFBIYQ8cO4/\
+4gwZEyCEJGfOzPf9TzLXOWfyO7yY+c51netcYzMMw0BERMRiLjK7ABERke5QgImIiCUpwERExJIU\
+YCIiYkkKMBERsSQFmIiIWJICTERELEkBJiIilqQAExERS1KAiYiIJSnARETEkhRgIiJiSQowERGx\
+JAWYiIhYkgJMREQsSQEmIiKWpAATERFLUoCJiIglKcBERMSSFGAiImJJCjAREbEkBZiIiFiSAkxE\
+RCxJASYiIpakABMREUtSgImIiCUpwERExJIUYCIiYkkKMBERsSQFmIiIWJICTERELEkBJiIilqQA\
+ExERS1KAiYiIJdnNLqC3DB8+nOTkZLPLEBGxlPLycg4fPmx2GV0SsQGWnJxMSUmJ2WWIiFhKZmam\
+2SV0mYYQRUTEkhRg0mV+v/+82kVEepMCTLokLy+PjIwMvF5vSLvX6yUjI4O8vDxzChORqKUAk3PK\
+y8sjPz8fn8+Hy+UKhpjX68XlcuHz+cjPz1eIiUifUoDJWQXCKyAQYps3bw6GV4BCTET6kgJMzsjv\
+97N69eqQthxyaPA1MGvWLBp8DeSQE7J99erVuiYmIn1CARaNjvvhvafbfp5FfHw8hYWFOBwOoC28\
+lrKUVawimWRWsYqlLA2GmMPhoLCwkPj4+N4+AxERBVhU2vUyvPmTtp/n4HQ6Kdy8AcfwSymiiHLK\
+SSaZNawhmWTKKaeIomB4OZ3OPjgBEREFWHQJ9Lyct0L2v8KU73bc1kmvzHn8AzzZTdRTTz75Idvy\
+yaeeejwej8JLRPqUAiyaBHpe3j/AN5fCoHioLYXf3gXvPXXGXpl30DW434whjjhyyQ3ZlksuccTh\
+drs7TLEXEelNCrBoMuW7p3tex/1QuALWzYPS/4b9m+DG5ae3fdUb83q9uG67A9/ho2SRFRw2XMSi\
+4HBiFlkdptiLiPS2iF0LUToxKL6t53XcD7+7Dz4ramsfcCkc+Qxq9sKamyHlRvjoefxHj+Na8kxw\
+qnwBBQAUUUQ99SxjGVlkBdsDIbZnzx5N5BBpx+/3d/qaOFO7dI16YNFo18unw6v/YDj5Rdvv+38P\
+h0th50tw6RjiTx1hycIFIYcWUECsI5ZNmzYR64gNhlfAkiVL9IIUaUer2PQeBVg0mvJdSM1q+735\
+GGCEbj/VAkcroGQ1edlx5Oaevu4VmG142223hUyxB8jNzdWLUaQdrWLTuzSEGE2O+6H4OcAGY755\
+uhd2Nk0nyMv7N6DtJuX2U+WdTieFhYW4XC6WLFmiF6FIO2daxcbj8eB2uzusYhM4RrrOZhiGce7d\
+rCczM1PfB9becT8U/KBtwgaA7SIwTp37uBsfA9c/ARrHF+kqv99PRkZGSEjlkBO8fhxHXMj1Y2gb\
+3QiH68dWeu/UEGK02PVyW3hd9s224cNrl577GPtAmHZ/8OGZXlhmv+BEwo1WsekbYRVgjY2NTJs2\
+jcmTJ5Oenh689lJWVsb06dNJS0vj7rvvpqmpyeRKLaL9zcmBKfTJ17cNHe76zdmPtQ+ESXOh4Ujb\
+dPvCn55z6SkROS0wxO5wOLSKTS8JqwAbMGAA27dvZ/fu3ezatYstW7bwwQcf8Nhjj7Fs2TI+/fRT\
+hg4dygsvvGB2qdbQfsmowBT6affD8HHQcBgujoNLvpqEYet/+rjULPjmD9uO++9/grdXwtv/3qWl\
+p0TkNKfTicfj6fYqNkeON/Hc2wc5clwf2jsTVgFms9kYPHgwAM3NzTQ3N2Oz2di+fTt33nknAAsX\
+LqSgoMDEKi2k/Y3LAYPi4e51bSHWWA8jvnrhGM1twXXjcpj7YlvQZf8r3PTTtrYbHwt9HhE5J6/X\
+i9vt7vYqNq+WVLDij/t5taSiL8q1nLCbhdja2srVV1/Np59+yoMPPsjYsWOJi4vDbm8rNSkpiaqq\
+KpOrtIhAr+vrRoyDRVuh2APNx2F0BvSPhWnutmMCAse6/rFv6hWJIO2nyueQExw2zCefXHKDq9gU\
++ApwuVydDiPelTkm5KeECqseGEC/fv3YtWsXlZWVFBcXs3///i4f6/F4yMzMJDMzk9ra2l6s0kIC\
+18FqS0MX6x0UDzGx8P7/g/4D29qKn9N1LpGz+PqQXuDxwdpjPPrqbibnb+XRV3ezfddBrpx+fcgq\
+Nk/zNMtYRjnlLGMZT/N0h1Vsvv5desMGxXD/jWMZNiimT8/TKsKuBxYQFxeHy+Vix44d1NfX09LS\
+gt1up7KyksTExE6PcbvduN1uoG0qqHD6Olj5u6en0Ad6VoEhwaaGtutcADGDOu+1iUS5g7XHcP+6\
+hIO1x1lX/DnTUobx9oFaar48yZNb9tP61Q1Jr+yspOBj6J8+E95bFzy+gAIcDgcve17G7XZT4CsI\
+eX6tYnP+wirAamtr6d+/P3FxcZw4cYI333yTxx57DJfLxWuvvcb8+fNZu3Ytc+bMMbtU6wiElPPW\
+thmIX78eFlgbEQBD17lEvnLkeBOvllRwV+YYhg2K4ScFn3Cw9jgA5f4Gyv0NwX1bv3Y3bdMpiLu+\
+bRm2o1+FWGzciOAwYWABgEAPTavYdE9YBVh1dTULFy6ktbWVU6dOMW/ePGbNmsXEiROZP38+P/7x\
+j7nyyitZvHix2aVaR/vrYCPO0LMaFK/rXCJfs/b9cp5+q5SGplaWZTsZO3Iw7x3s+hD7QLsNrl/A\
+5KRLKdn6Ozb+catWselhYRVgGRkZfPzxxx3aU1NTKS4uNqEiiznubxsynPLd0MkYItINRujP81yz\
+qKnVwP2tFH7wL09jND7eYXjQ6XSGxcobVhZWASYXKHC9C3QdS+QCLbwuhdgYe3AG4MHaY1067vbJ\
+o/n9X2poOWVQ+rdjbRMwzvCBUuF1YRRgkSRw/UrXsUQuWGAGYMC/5kziH3+3B5vNxnenf4N/27SP\
+oyeaedA1lg0f+7hh3Aj+IdvJsEExPDTzGI9v2sePZ0008QwinxbzFRGRICu9d4bdfWAiIiJdoQAT\
+ERFLUoCJiIglKcBERMSSFGAiImJJCjAREbEkBZiIiFiSAkxERCxJASYiIpakAOtFX/9yus7aW+rq\
+8L/wAi11dX1VlohIRFCA9ZK8vDwyMjLwer0h7V6vl4yMjODXJxzdsIG//cd/cnTDBhOqFBGxLi3m\
+2wvy8vLIz88HwOVyBb/Ezuv1Br/ELrD9x0vbVo2/9I47TKtXRMSKFGA9rH14Afh8PlwuFx6PB7fb\
+HfwGViC4n77MTkTk/GkIsRPdvS7l9/tZvXp1SFsOOTT4Gpg1axYNvgZyyAnZvnr16jNeKxMRkTNT\
+gHWiu9el4uPjKSwsxOFwAG3htZSlrGIVySSzilUsZWkwxBwOB4WFhfpSOxGRbtAQYicC16O6c13K\
+6XRSWFiIy+WiyFfEHOaQTDJrWANAOeUUURQML6fT2aO1i4hEC/XAOmEfOpT4xYuxDx3areOdTice\
+j4d66sknP2RbPvnUU4/H41F4iYhcAAVYL/B6vbjdbuKII5fckG255BJHHG63u8MUexER6ToFWA9r\
+P1U+iyySSaacchaxiHLKSSaZLLKCsxMVYiIi3aNrYBegpa6Ooxs2cOkdd2AfOhS/3x8ML4ACCgAo\
+ooh66lnGMrLICrYHQmzPnj2ayCEicp4UYF3QUldH3csv03zoEMc+/JDB06fTf/RoTjU2cuSFFzn2\
+7nsk/vxnxMfHs2TJkpD7wAoowOFw8LLnZdxuNwW+gpDnXrJkicJLRKQbwirAKioq+N73vkdNTQ02\
+mw23283SpUs5cuQId999N+Xl5SQnJ/PKK68wtJsTLM5XS10dVT/6EQ3v7wi2Ha38anp9v34ANOzY\
+Qd3Lv2XE3z8UvCk5EGLtZxsGZicGemi5ubm6iVlEpJvC6hqY3W7nZz/7Gfv27eODDz7gmWeeYd++\
+faxcuZIZM2ZQWlrKjBkzWLlyZZ/U01JXh2/58pDwCtHaGvy1fvPm4I3PeXl55ObmdpgqHwgxh8Oh\
+8BIRuUA2wzAMs4s4kzlz5vDQQw/x0EMPUVRUREJCAtXV1WRlZXHgwIGzHpuZmUlJScl5/82TZWXU\
+rFzJqOXL+WLTZg4/8wz9Ro+mtaYGzvFPNWBSOv0uGcLon/wLA1JS8Pv9nQ4PnqldRMRs3X3vNENY\
+DSG2V15ezscff8z06dOpqakhISEBgNGjR1NTU9Nrf7dm5UqOv/0naoCBkyYB0HroUJeOPfnJXgA+\
+X/x9Un732hlDSuElInLhwjLAjh07xty5c3nqqacYMmRIyDabzYbNZuv0OI/Hg8fjAaC2trZbf3vU\
+8uXUfPWzX1wcYKNuwwZaq6u7/BwtPh9HN2wgfvHibtUgIiLnFlbXwACam5uZO3cuCxYs4I6vlnIa\
+NWoU1V8FSHV1NSNHjuz0WLfbTUlJCSUlJYwYMaJbf39ASgrfeO45BqSkAHBR7EAGXXft6R1iYk7/\
+3r8/AP0SEhg4dSq2r/6m3eHQ16OIiPSysAowwzBYvHgxEyZM4OGHHw62z549m7Vr1wKwdu1a5syZ\
+0yf1BBb1bfG1hWfstdeSurGA4Q8+yPAHH+Cy3/yaQTfewGUvvkDyb35Nyq/XMujGG/jGC893exkq\
+ERHpmrCaxPHuu+/yrW99iyuuuIKLLmrL1p/+9KdMnz6defPm8fnnn3PZZZfxyiuvMGzYsLM+V09c\
+iAzcqDz429/m2PbtwRuWu3pcV/cXEQkXmsTRTddffz1nytO33nqrj6s5vagvwIDzuJ4V6LkBug4m\
+ItJLwirAIsWFfB2LiIh0jQKsF7TvuYmISO8Iq0kcIiIiXaUAExERS1KAiYiIJSnARETEkhRgIiJi\
+SQowERGxJAWYiIhYkgJMREQsSQEmIiKWpAATERFLUoCJiIglKcBERMSSFGAiImJJCjAREbEkBZiI\
+iFiSAkxERCxJASYiIpakABMREUtSgImIiCUpwERExJIUYBGqrrGONZ+soa6xzuxSRER6RdgF2H33\
+3cfIkSOZNGlSsO3IkSNkZ2czbtw4srOzqavTm/K5FHxawM93/pyCTwvOul93g87v959Xu4hITwu7\
+ALv33nvZsmVLSNvKlSuZMWMGpaWlzJgxg5UrV5pUnXXkpOXw8NUPk5OWc9b9uhp07eXl5ZGRkYHX\
+6w1p93q9ZGRkkJeXd/4Fi4icLyMMlZWVGenp6cHHTqfT8Pl8hmEYhs/nM5xO5zmf4+qrr+61+iLJ\
+kRNHjBf/8qJx5MSRLu2fm5trAAZgOBwO48CBA4ZhGMaBAwcMh8MR3Jabm9uLVYuIYRjG4cOHz6u9\
+K6z03hl2PbDO1NTUkJCQAMDo0aOpqakxuaLIMfTioSyatIihFw895755eXnk5+cHH/t8PlwuF5s3\
+b8blcuHz+YLb8vPz1RMT6UUaCQnDIcRzsdls2Gy2Trd5PB4yMzPJzMyktra2jyuLbH6/n9WrV4e0\
+5ZBDg6+BWbNm0eBrIIeckO2rV6/WNTGRXhD4MBn4EBkIMa/XG/wwGRUfIs3uAnZGQ4jhqf0wYQ45\
+RiGFxhrWGMkkG2tYYxRSaOSQ02F4UUR6TvthfNoN52/atClkGJ9uDudb6b3TEj2w2bNns3btWgDW\
+rl3LnDlzTK4oOjmdTgoLC3E4HBRRRDnlJJPMGtaQTDLllFNEEQ6Hg8LCQpxOp9kli0QUjYSECrsA\
+u+eee7j22ms5cOAASUlJvPDCCyxfvpw333yTcePGsW3bNpYvX252mVHL6XTi8Xiop5588kO25ZNP\
+PfV4PB6Fl0gviI+PD36IhLbwWspSVrGKZJJZxSqWsjQYYoEPk/Hx8SZW3XtshmEYZhfRGzIzMykp\
+KTG7jIgTGGNv8DUEXzQB5ZSzjGXEOmLVAxPpRb35OrTSe2fY9cDEXHWNdTy761me3fVsh5ubvV4v\
+WVlZ+Hw+ssgKDhsuYlFwODGLrA4XlkXk/DR8cZSP3vgdDV8c7XS7RkLaqAcWxeoa6yj4tICctJzg\
+NPpndz3LL3f/EoDJIyZz5cgrAWg91spT//spqqurg8fnkEMRRdRTTxxxZJFFAQXB7Q6Hgz179kTs\
+8IVIb3n/ld+y43fruHbuPVw3b0GH7eqBtVEPLAoFlo9at39dcBWOusY6fvLuT3j+L88H99tdu5uX\
+9r7ES3tf4jf/8xum5kwNeZ4CChiYMJClzyxlYMLAkPACWLJkicJLpIv8VZVsWJmHv6oS46s7hQxb\
+x97Y7j/v5Pprr9VICOqBRaVAL+ve9HsZdvEwxsWNY/k7yzna1PlwhQ0bd4+/m6EXD+XA+gP817//\
+F0DIbMP2958A5ObmRv49KCLd1PDFUfYWbSM9ayaxQy4F4NXH/5nP/7KbS4aPYMjwUQweFk/NZ6Uk\
+Xp7O3qI3+cakKVzzfxZz9dWZ1B45Enyunh4JsdJ7p3pgUWz/kf1cNfIqfvjWD88YXgAGBuVHy/nl\
+7l9SNr2MEXNGEDcyLmR4ov0Ue4WXyNntLdrGn367hr1F24I9rEviRwLw5eFaqvZ/woH336b+kI+/\
+/mk7AJ9/sov31jzHrTdcH/JcBRQQ64hl06ZNxDpio2okRD2wKFTXWMejf3qUD6o/ICE2geqG6nMe\
+M3nEZOwX2dlZs5NrRl/D8knLGZs4tsN+fr8/Yl8sIj0l0ANLvXo629f8ks//spv+A2NpPtHQpeP3\
+nophzWuvAz0/EmKl9071wKLQ0IuHBidnnOJUl47ZXbsbG20D81eOurLT8AIUXiJdEDvkUqbOnstn\
+Oz/k87/sBuhyeI24LJXrEuJZ9uCDHRYNiLaRELvZBYg57rn8HgbaB+I75mP9gfVn3XeQfRDHW47T\
+fKqZv5v8d9xz+T19VKVIZGrfA2s4epSqA/s4XPl5l0LsS38tjce+JG3IpXzw3ruMSU4J2e50OqNm\
+9q96YFEmMAMRYNGkRTww5QHuTb+XzFGZ3Jp8K4PtgwEY1G9Q8JjjLceBtl7YQPvALq1cLyJnFrgG\
+tv/9t/lb+WdUl+5n4rdc9B8Ye9bjhiYkMjbzGi4efAknvjjKoT1/7nS/aAgvUA8s6gS+wBIIfo3K\
+jzJ/FNxe11jHP7/7z7xT9Q4AmaMymTS87duxB9oHnvMLMkXk3NKzZgLQ3NjI55/sAiD2kiEseOLn\
+vPR/H4BTHYf240YnkJo5nZ2/38A1d95DzICLg88TrRRgUSZrTBYfHfqIrDFZnW4fevFQnrj+Cdbt\
+Xwe0DTWqxyXSswLXwAL3dhk2mHLzLPYWbYNTp7APuJiWk40MdSRx8w/+gQ9fX0/ZxyX0HzCAGxYs\
+Cpl+H80UYFGmqKKId6reYeroqaRcmtLpPkMvHsoDUx7o28JEolDskEtDVtoI9KhSr57OZzs/DAbV\
+dx5Y1uG+MVGARZ3AEKCGAkXCT6BnBhCfmNRpu5ymAIsyQy8eyqJJi8wuQ0TkgmkWoohIN5xrxXjp\
+fQowEZFuaL8clJhDQ4giIt0QmHAR7VPZzaQAExHpBk2sMJ+GEEVExJIUYCIiYkkKMBERsSQFmIiI\
+WJICTERELMkyAbZlyxbGjx9PWloaK1euNLscERExmSUCrLW1lQcffJA//vGP7Nu3j3Xr1rFv3z6z\
+yxIRERNZIsCKi4tJS0sjNTWVmJgY5s+fz8aNG80uS0RETGSJAKuqqmLMmDHBx0lJSVRVVZlYkYiI\
+mC2iVuLweDx4PB4AamtrTa5GRER6kyV6YImJiVRUVAQfV1ZWkpiY2GE/t9tNSUkJJSUljBgxoi9L\
+FBGRPmaJAJs6dSqlpaWUlZXR1NTE+vXrmT17ttlliYiIiSwxhGi32/nFL37BzTffTGtrK/fddx/p\
+6elmlyUiIiayRIAB3Hrrrdx6661mlyEiImHCEkOIIiIiX6cAExERS1KAiYiIJSnARETEkhRgIiJi\
+SQowERGxJAWYiIhYkgJMREQsSQEmIiKWpAATERFLUoCJiIglKcBERMSSFGAiImJJCjAREbEkBZiI\
+iFiSAkxERCxJASYiIpakABMREUtSgImIiCUpwERExJIUYCIiYkkKMBERsSQFmIiIWJICTERELCls\
+AuzVV18lPT2diy66iJKSkpBtK1asIC0tjfHjx7N161aTKhQRkXBiN7uAgEmTJrFhwwbuv//+kPZ9\
++/axfv169u7di8/nY+bMmXi9Xvr162dSpSIiEg7Cpgc2YcIExo8f36F948aNzJ8/nwEDBpCSkkJa\
+WhrFxcUmVCgiIuEkbALsTKqqqhgzZkzwcVJSElVVVSZWJCIi4aBPhxBnzpzJoUOHOrQ/8cQTzJkz\
+54Kf3+Px4PF4AKitrb3g5xMRkfDVpwG2bdu28z4mMTGRioqK4OPKykoSExM73dftduN2uwHIzMzs\
+XpEiImIJYT+EOHv2bNavX8/JkycpKyujtLSUadOmmV2WiIiYLGwC7PXXXycpKYkdO3Zw2223cfPN\
+NwOQnp7OvHnzmDhxIt/5znd45plnNANRRESwGYZhmF1Eb8jMzOxwP5mIiJydld47w6YHJiIicj4U\
+YCIiYkkKMBERsSQFmIiIWJICTERELEkBJiIilqQAExERS1KAiYiIJSnARETEkhRgIiJiSQowERGx\
+JAWYiIhYkgJMREQsSQEmIiKWpAATERFLUoCJiIglKcBERMSSFGAiImJJCjAREbEkBZiIiFiSAkxE\
+RCxJASYiIpakABMREUsKmwB75JFHuPzyy8nIyOD222+nvr4+uG3FihWkpaUxfvx4tm7dal6RIiIS\
+NsImwLKzs/nkk0/Ys2cPTqeTFStWALBv3z7Wr1/P3r172bJlCw888ACtra0mVysiImYLmwC76aab\
+sNvtAFxzzTVUVlYCsHHjRubPn8+AAQNISUkhLS2N4uJiM0sVEZEwEDYB1t6LL77ILbfcAkBVVRVj\
+xowJbktKSqKqqsqs0kREJEzY+/KPzZw5k0OHDnVof+KJJ5gzZ07wd7vdzoIFC877+T0eDx6PB4Da\
+2toLK1ZERMJanwbYtm3bzrr9pZdeYtOmTbz11lvYbDYAEhMTqaioCO5TWVlJYmJip8e73W7cbjcA\
+mZmZPVS1iIiEo7AZQtyyZQtPPvkkb7zxBrGxscH22bNns379ek6ePElZWRmlpaVMmzbNxEpFRCQc\
+9GkP7GweeughTp48SXZ2NtA2keNXv/oV6enpzJs3j4kTJ2K323nmmWfo16+fydWKiIjZbIZhGGYX\
+0RsyMzMpKSkxuwwREUux0ntn2AwhiohI9/n9/vNqjwQKMBERi8vLyyMjIwOv1xvS7vV6ycjIIC8v\
+z5zCepkCTETEwvLy8sjPz8fn8+FyuYIh5vV6cblc+Hw+8vPzIzLEFGAiIhYVCK+AQIht3rw5GF4B\
+kRhiCjAREQvy+/2sXr06pC2HHBp8DcyaNYsGXwM55IRsX716dURdE1OAiYhYUHx8PIWFhTgcDqAt\
+vJaylFWsIplkVrGKpSwNhpjD4aCwsJD4+HgTq+5ZCjAREYs5cayJP//3/zDGkRwMsSKKKKecZJJZ\
+wxqSSaaccoooCoaX0+k0u/QepQATEbGYv75fzY4NB/nr+9U4nU48Hg/11JNPfsh++eRTTz0ejyfi\
+wgsUYCIipgv0qE4cazprW8CE6xK49o6xpEwezusvFrLk+0uII45cckP2yyWXOOJwu90dpthHAgWY\
+iIjJ2veoAj78/Wfs2HCQD3//GSeONfHh7z+j+KvfBw6O4aqbLqNoczGL/v4uqg9Vk0VWcNhwEYuC\
+w4lZZHWYYh8pwmYtRBGRaHLiWBN/fb+aCdclMOG6BE582UTFviOkTB5O4/Fm9r3TNgV+79s+9r9f\
+TWuzETzOHtOPg/srePS/FnC0oW1WYQEFABRRRD31LGMZWWQF2wMhtmfPnoiZyKEemIiICb7e6yrf\
+c5jK/XW88fQuXv/PP2OcOr1vILwAPnnbx643K/iyAqan3RLynAUUEOuIZdOmTcQ6YoPhFbBkyZKI\
+CS9QgImImCJwHWvCdQn89f1q6mtOMCDWzrEjJ0PC62xunfo93N9dGnw8In4Uf9y0ldtuuy1kij1A\
+bm5uxN3IrCFEERETBK5jQVuYtZxs5a8fVHOyoaXLz3Fp/MU899RTJIyN49lf/IofzPx3WmovAcDp\
+dFJYWIjL5WLJkiURF16gABMRMd3AwTHYB/TjmP/keR03ZmLbcGBeXh7fX3Q/fzvQxITrEoLbnU5n\
+RF3z+joNIYqIhIGUycOJGzUQAFsX3plHpQ7BHtMvOM0+6bIErrrpMgYOjgnZL1LDCxRgIiJhoWz3\
+YeprTvCNScO4J3c6CWmXBrdde8dYJmePAWBUyiVMyR5D/5h+lGwuD5l6H200hCgiEgYCQ38Trktg\
+4OAYbvnBFewprMTWblvsJTHBSR+V++v4xqRhIUOG0UYBJiISBtpP6gg8nv6/UkP2aT/pI/Dz60OG\
+0UQBJiJiMV8Pu2ila2AiImJJCjAREbEkBZiIiFiSAkxERCxJASYiIpakABMREUtSgImIiCXZDMMw\
+zr2b9QwfPpzk5OQO7bW1tYwYMaLvCzJJNJ2vzjUyRdO5gvnnW15ezuHDh037++cjYgPsTDIzMykp\
+KTG7jD4TTeerc41M0XSuEH3neyE0hCgiIpakABMREUuKugBzu91ml9Cnoul8da6RKZrOFaLvfC9E\
+1F0DExGRyBB1PTAREYkMURNgjzzyCJdffjkZGRncfvvt1NfXB7etWLGCtLQ0xo8fz9atW80rsoe8\
++uqrpKenc9FFF3WYzRRp5wqwZcsWxo8fT1paGitXrjS7nB533333MXLkSCZNmhRsO3LkCNnZ2Ywb\
+N47s7Gzq6upMrLDnVFRU4HK5mDhxIunp6Tz99NNAZJ5vY2Mj06ZNY/LkyaSnp5ObmwtAWVkZ06dP\
+Jy0tjbvvvpumpiaTKw1jRpTYunWr0dzcbBiGYTz66KPGo48+ahiGYezdu9fIyMgwGhsbjc8++8xI\
+TU01WlpazCz1gu3bt8/Yv3+/ceONNxofffRRsD0Sz7WlpcVITU01Dh48aJw8edLIyMgw9u7da3ZZ\
+Pertt982du7caaSnpwfbHnnkEWPFihWGYRjGihUrgv+frc7n8xk7d+40DMMwvvjiC2PcuHHG3r17\
+I/J8T506ZXz55ZeGYRhGU1OTMW3aNGPHjh3GXXfdZaxbt84wDMO4//77jWeffdbMMsNa1PTAbrrp\
+Juz2tu/vvOaaa6isrARg48aNzJ8/nwEDBpCSkkJaWhrFxcVmlnrBJkyYwPjx4zu0R+K5FhcXk5aW\
+RmpqKjExMcyfP5+NGzeaXVaPuuGGGxg2bFhI28aNG1m4cCEACxcupKCgwITKel5CQgJXXXUVAJdc\
+cgkTJkygqqoqIs/XZrMxePBgAJqbm2lubsZms7F9+3buvPNOIHLOtbdETYC19+KLL3LLLbcAUFVV\
+xZgxY4LbkpKSqKqqMqu0XhWJ5xqJ59QVNTU1JCS0fa386NGjqampMbminldeXs7HH3/M9OnTI/Z8\
+W1tbmTJlCiNHjiQ7O5uxY8cSFxcX/LAdLf+fu8tudgE9aebMmRw6dKhD+xNPPMGcOXOCv9vtdhYs\
+WNDX5fWorpyrRAebzYbNZjO7jB517Ngx5s6dy1NPPcWQIUNCtkXS+fbr149du3ZRX1/P7bffzv79\
++80uyVIiKsC2bdt21u0vvfQSmzZt4q233gq+ABITE6moqAjuU1lZSWJiYq/W2RPOda6dseq5nk0k\
+nlNXjBo1iurqahISEqiurmbkyJFml9RjmpubmTt3LgsWLOCOO+4AIvt8AeLi4nC5XOzYsYP6+npa\
+Wlqw2+1R8/+5u6JmCHHLli08+eSTvPHGG8TGxgbbZ8+ezfr16zl58iRlZWWUlpYybdo0EyvtPZF4\
+rlOnTqW0tJSysjKamppYv349s2fPNrusXjd79mzWrl0LwNq1ayOm120YBosXL2bChAk8/PDDwfZI\
+PN/a2trgbOgTJ07w5ptvMmHCBFwuF6+99hoQOefaa8yeRdJXxo4dayQlJRmTJ082Jk+ebNx///3B\
+bY8//riRmppqOJ1O4w9/+IOJVfaMDRs2GImJiUZMTIwxcuRI46abbgpui7RzNQzD2Lx5szFu3Dgj\
+NTXVePzxx80up8fNnz/fGD16tGG3243ExETj+eefNw4fPmx8+9vfNtLS0owZM2YYfr/f7DJ7xDvv\
+vGMAxhVXXBF8rW7evDkiz3f37t3GlClTjCuuuMJIT0838vPzDcMwjIMHDxpTp041xo4da9x5551G\
+Y2OjyZWGL63EISIilhQ1Q4giIhJZFGAiImJJCjAREbEkBZiIiFiSAkxERCxJASYiIpakABMREUtS\
+gImIiCUpwERExJIUYCIiYkkKMBERsSQFmIiIWJICTERELEkBJiIilqQAExERS1KAiYiIJSnARETE\
+khRgIiJiSQowERGxJAWYiIhY0v8HCo1t5olki8UAAAAASUVORK5CYII=\
+"
+  frames[2] = "data:image/png;base64,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\
+5sWBY8Yn4TMwAICVOAMDAFiJgFnq+eefl9/v13XXXTdr1VJbW5u8Xq+qqqr00ksvOTRhbhw8eFBV\
+VVXyer1qb293epyceOSRR1RaWqo777wzs+2dd95RfX291qxZo/r6er377rsOTjj/xsbGFAgEtHbt\
+Wvn9fu3fv19Sfh/32bNntWnTJq1fv15+v1/hcFiSNDIyorvvvlter1cPPfSQzp8/7/CkLmZgpaGh\
+IXPixAnz5S9/2fzlL3/JbD9+/LipqakxZ8+eNX//+9/NqlWrzIULFxycdP5cuHDBrFq1yrz11lvm\
+3Llzpqamxhw/ftzpsebdH//4R/Paa68Zv9+f2fbkk0+atrY2Y4wxbW1t5rvf/a5T4+VEIpEwr732\
+mjHGmH/+859mzZo15vjx43l93B988IH517/+ZYwx5vz582bTpk3myJEj5utf/7p57rnnjDHGPPbY\
+Y+anP/2pk2O6GmdglqqurlZVVdWs7T09PWppadGyZcu0cuVKeb1eHT161IEJ59/Ro0fl9Xq1atUq\
+LV26VC0tLerp6XF6rHm3efNm3XLLLVnbenp61NraKklqbW1Vd3e3A5PlTllZmT7/+c9Lkm644QZV\
+V1drYmIir4+7oKBA119/vSRpenpa09PTKigo0OHDh/Xggw9Kyr9jnm8ELM9MTExoxYoVmccVFRWa\
+mJhwcKL5k8/H9klOnz6tsrIySdLtt9+u06dPOzxR7oyOjuqvf/2r7r777rw/7pmZGW3YsEGlpaWq\
+r6/X6tWrVVxcrMLCQkmL6//xa1Ho9ACY29atW/X222/P2r537141NTU5MBHcoKCgQAUFBU6PkRPv\
+vfeetm/frqefflo33nhj1r58PO4lS5bo9ddfVyqV0v33368TJ044PZJVCJiLHTp06Kq/pry8XGNj\
+Y5nH4+PjKi8vn8+xHJPPx/ZJbrvtNp06dUplZWU6deqUSktLnR5p3k1PT2v79u3auXOnHnjgAUmL\
+47glqbi4WIFAQEeOHFEqldKFCxdUWFi4qP4fvxZcQswzjY2N6urq0rlz5zQyMqLh4WFt2rTJ6bHm\
+xV133aXh4WGNjIzo/Pnz6urqUmNjo9NjLYjGxkZ1dnZKkjo7O/PuDNwYo0cffVTV1dV64oknMtvz\
++bgnJyeVSqUkSe+//75efvllVVdXKxAI6IUXXpCUf8c875xeRYJr8+KLL5ry8nKzdOlSU1paau65\
+557MvqeeesqsWrXK+Hw+8/vf/97BKedfX1+fWbNmjVm1apV56qmnnB4nJ1paWsztt99uCgsLTXl5\
+ufnFL35hzpw5Y77yla8Yr9drtmzZYpLJpNNjzqs//elPRpJZt26dWb9+vVm/fr3p6+vL6+N+4403\
+zIYNG8y6deuM3+830WjUGGPMW2+9Ze666y6zevVq8+CDD5qzZ886PKl7cScOAICVuIQIALASAQMA\
+WImAAQCsRMAAAFYiYAAAKxEwAICVCBgAwEoEDABgJQIGALASAQMAWImAAQCsRMAAAFYiYAAAKxEw\
+AICVCBgAwEoEDABgJQIGALASAQMAWImAAQCsRMAAAFb6X/2FVZjzo/xdAAAAAElFTkSuQmCC\
+"
+  frames[3] = "data:image/png;base64,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\
+5Pf7tXr1apWXl+vw4cOSsvtxX7lyRVVVVVq3bp3Ky8sVDAYlSUNDQ9q4caO8Xq+efvppXbt2zeZJ\
+HcyCcQYGBqxz585ZX/3qV62//vWvqfWzZ89aFRUV1pUrV6x//vOf1sqVK63r16/bOOncuX79urVy\
+5Urrvffes65evWpVVFRYZ8+etXusjPjTn/5kvf3221Z5eXlq7YUXXrCam5sty7Ks5uZm6/vf/75d\
+42VELBaz3n77bcuyLOtf//qXVVJSYp09ezarH/eNGzesf//735ZlWda1a9esqqoq6+TJk9Y3v/lN\
+69VXX7Usy7KeffZZ6+c//7mdYzoaZ2AGKisrU2lp6Yz1zs5ONTQ0aMmSJVqxYoW8Xq9OnTplw4Rz\
+79SpU/J6vVq5cqUWL16shoYGdXZ22j1WRmzatEkPP/xw2lpnZ6caGxslSY2Njero6LBhsswpLCzU\
+F7/4RUnSAw88oLKyMo2NjWX143a5XLr//vslSVNTU5qampLL5dKJEye0c+dOSdn3mOcaAcsiY2Nj\
+Wr58eerz4uJijY2N2TjR3Mnmx3Y33n//fRUWFkqSHn30Ub3//vs2T5Q5w8PD+tvf/qaNGzdm/eOe\
+np7W+vXrVVBQoJqaGq1atUp5eXnKycmRtPD+P5+tHLsHwO1t2bJFFy5cmLF+8OBB1dfX2zARnMLl\
+csnlctk9RkZ88MEH2rFjh1566SU9+OCDacey8XEvWrRIp0+fViKR0Pbt23Xu3Dm7RzIKAXOo48eP\
+z/p7ioqKNDIykvp8dHRURUVFczmWbbL5sd2NZcuWaXx8XIWFhRofH1dBQYHdI825qakp7dixQ7t3\
+79ZTTz0laWE8bknKy8uT3+/XyZMnlUgkdP36deXk5Cy4/89ni0uIWaSurk7t7e26evWqhoaGNDg4\
+qKqqKrvHmhMbNmzQ4OCghoaGdO3aNbW3t6uurs7useZNXV2d2traJEltbW1ZdxZuWZb27t2rsrIy\
+Pf/886n1bH7cExMTSiQSkqQPP/xQx44dU1lZmfx+v15//XVJ2feY55zdu0gwe2+88YZVVFRkLV68\
+2CooKLAef/zx1LEXX3zRWrlypeXz+aw//OEPNk4597q7u62SkhJr5cqV1osvvmj3OBnT0NBgPfro\
+o1ZOTo5VVFRk/fKXv7QuXrxofe1rX7O8Xq+1efNmKx6P2z3mnPrzn/9sSbLWrl1rrVu3zlq3bp3V\
+3d2d1Y/7nXfesdavX2+tXbvWKi8vt8LhsGVZlvXee+9ZGzZssFatWmXt3LnTunLlis2TOhd34gAA\
+GIlLiAAAIxEwAICRCBgAwEgEDABgJAIGADASAQMAGImAAQCMRMAAAEYiYAAAIxEwAICRCBgAwEgE\
+DABgJAIGADASAQMAGImAAQCMRMAAAEYiYAAAIxEwAICRCBgAwEgEDABgpP8HJ8GK0OGDmdcAAAAA\
+SUVORK5CYII=\
+"
+  frames[4] = "data:image/png;base64,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\
+5Pf7tXr1apWXl+vw4cOSsvtxX7lyRVVVVVq3bp3Ky8sVDAYlSUNDQ9q4caO8Xq+efvppXbt2zeZJ\
+HcyCcQYGBqxz585ZX/3qV62//vWvqfWzZ89aFRUV1pUrV6x//vOf1sqVK63r16/bOOncuX79urVy\
+5Urrvffes65evWpVVFRYZ8+etXusjPjTn/5kvf3221Z5eXlq7YUXXrCam5sty7Ks5uZm6/vf/75d\
+42VELBaz3n77bcuyLOtf//qXVVJSYp09ezarH/eNGzesf//735ZlWda1a9esqqoq6+TJk9Y3v/lN\
+69VXX7Usy7KeffZZ6+c//7mdYzoaZ2AGKisrU2lp6Yz1zs5ONTQ0aMmSJVqxYoW8Xq9OnTplw4Rz\
+79SpU/J6vVq5cqUWL16shoYGdXZ22j1WRmzatEkPP/xw2lpnZ6caGxslSY2Njero6LBhsswpLCzU\
+F7/4RUnSAw88oLKyMo2NjWX143a5XLr//vslSVNTU5qampLL5dKJEye0c+dOSdn3mOcaAcsiY2Nj\
+Wr58eerz4uJijY2N2TjR3Mnmx3Y33n//fRUWFkqSHn30Ub3//vs2T5Q5w8PD+tvf/qaNGzdm/eOe\
+np7W+vXrVVBQoJqaGq1atUp5eXnKycmRtPD+P5+tHLsHwO1t2bJFFy5cmLF+8OBB1dfX2zARnMLl\
+csnlctk9RkZ88MEH2rFjh1566SU9+OCDacey8XEvWrRIp0+fViKR0Pbt23Xu3Dm7RzIKAXOo48eP\
+z/p7ioqKNDIykvp8dHRURUVFczmWbbL5sd2NZcuWaXx8XIWFhRofH1dBQYHdI825qakp7dixQ7t3\
+79ZTTz0laWE8bknKy8uT3+/XyZMnlUgkdP36deXk5Cy4/89ni0uIWaSurk7t7e26evWqhoaGNDg4\
+qKqqKrvHmhMbNmzQ4OCghoaGdO3aNbW3t6uurs7useZNXV2d2traJEltbW1ZdxZuWZb27t2rsrIy\
+Pf/886n1bH7cExMTSiQSkqQPP/xQx44dU1lZmfx+v15//XVJ2feY55zdu0gwe2+88YZVVFRkLV68\
+2CooKLAef/zx1LEXX3zRWrlypeXz+aw//OEPNk4597q7u62SkhJr5cqV1osvvmj3OBnT0NBgPfro\
+o1ZOTo5VVFRk/fKXv7QuXrxofe1rX7O8Xq+1efNmKx6P2z3mnPrzn/9sSbLWrl1rrVu3zlq3bp3V\
+3d2d1Y/7nXfesdavX2+tXbvWKi8vt8LhsGVZlvXee+9ZGzZssFatWmXt3LnTunLlis2TOhd34gAA\
+GIlLiAAAIxEwAICRCBgAwEgEDABgJAIGADASAQMAGImAAQCMRMAAAEYiYAAAIxEwAICRCBgAwEgE\
+DABgJAIGADASAQMAGImAAQCMRMAAAEYiYAAAIxEwAICRCBgAwEgEDABgpP8HJ8GK0OGDmdcAAAAA\
+SUVORK5CYII=\
+"
+
+
+    /* set a timeout to make sure all the above elements are created before
+       the object is initialized. */
+    setTimeout(function() {
+        anime412bc04d7f74f1e9ef729c5e2e62c22 = new Animation(frames, img_id, slider_id, 500.0,
+                                 loop_select_id);
+    }, 0);
+  })()
+</script>
+</div>
+</div>
+<p>So the best we could do with this would be to move all this to the GPU. Now the problem is that calling something the GPU 1500 times from Python is a really bad idea because there’s this kind of huge communication overhead of this of flow of control and data switching back between the CPU and the GPU. It’s the kernel launching overhead. It’s bad news. So you don’t want to have a really big fast python loop that inside it calls cuda code. GPU code. So we need to make all of this run without the loop, which we could do with broadcasting. So let’s roll up our sleeves and try to get the broadcast version of this working. So generally speaking, the way we tend to do things with broadcasting on a GPU is we create batches or mini batches. So to create batches or mini batches, we don’t just call them batches. Nowadays, we create a batch size. So let’s say we’re going to do a batch size of five, so we’re going to do five at a time. All right, so how do we do five at a time? This is only doing one at a time. How do we do five at a time last before it’s final data and this time little x for our testing. So I’ve got to do everything ahead of time. Little tests as we always do. This is not now X[0] anymore, but it’s X colon bs (X[:bs]), so it’s the first five. This is now the first five items. Okay, so little x is now a five by two metrics. This is how mini batch the first five items as before. Our data itself is 1500 by two. All right. So we need a distance calculation.</p>
+<p>But previously our distance calculation, previously a distance calculation only worked if Little x was a single number and it returned just the distance is from that to everything in Big X. But we need something that’s actually going to be return a Matrix right. We’ve got let’s say we’ve got five by two in little x and then in big X we’ve got something much bigger not to scale, obviously we’ve got 1500 by two. And what is the distance between these two things? Well, if you think about it, there’s going to be a distance between item one and item one, but there’s also going to be a distance between item one, item two, and there’s going to be a distance between let’s use a different color for the next one, item two and item one, right? So the output of this is actually going to be a matrix. The distances are actually going to give us a matrix where I mean, it doesn’t matter which way around, we do what we can decide, but if we it this way around for each of the five things in the mini batch, there will be 1500 distances. The distance between every one. So we’re going to need to do a broadcasting to do this calculation. So this is a function that we’re going to create and it’s going to create this, as you can see, five by 1500 output. But let’s say how we get it. So can we do X minus x? No, we can’t. Why is that? That’s because big X is 1500 by two and little x is five by two.</p>
+<p>So it’s going to look at remember our roles right to left these compatible? Yes they are They’re the same these compatible. No, they’re not. Okay. Because they’re different. So that’s not possible to do What if though we want it to What if we insert in big X and axis at the start here and in little x we add an axis in the middle here then now these are compatible because you’ve got they’re the same because I should use arrows really? They are compatible because one of them is a one. And these are compatible because one of them is a one as well. So they are all compatible. And what it’s going to do is it’s going to do the subtraction between these directly and it’s going to copy this across all 1500 rows. It will copy it. This is going to be copied and then this across five rows, and then this will be copied across these 1500 rows because what broadcasting does, it’s not really copying, but it’s effectively copying. And so that gives us it can now subtract them and that gives us what we wanted, which is five by 1500 and then also by two because there’s both the x and the y. So that’s why this works. That’s what this is doing here. It’s taking the subtraction, it’s squaring them, and then summing over that last shortest axis, summing over the X and the Y squids and then take square root. I don’t know why as it touched that square root, we could just put dot square root at the end. But same, same. In fact, it’s worth mentioning that. So most things that can do on tensors, you can either write torch. as a function or you can write it as a method. Generally speaking, both should be fine. Not everything, but most things work in both ways. Okay, so now we’ve got this matrix, which is five by 1500. And the nice thing is that our Gaussian kernel doesn’t actually have to be changed to get the weights, believe it or not. And the reason for that is now how do we get the source code? I could move back up there or I can just type Gaussian question mark, question mark and see it. And the nice thing is that this is just this is a scalar, so it broadcasts over anything and then this is also just a scalar. So this is all going to work fine without any fiddling around. Okay, so now we’ve got a 5, 1500 a weight. So that’s the weight for each of the five things. There are mini batch each of the 1500 things, each of them as compared to. And then we’ve got the shape of the data itself, X.shape, which is the 1500 points. So now we want to apply each one of these weights to each of these columns. So we need to add a unit access to the end set at a unit, access to the end, we could say colon, comma, colon, common, none, but dot, dot, dot means all of the axes up until however many you need. So in this case, the last one comma None[…,None].</p>
+</section>
+<section id="gpu-batched-algorithm" class="level2">
+<h2 class="anchored" data-anchor-id="gpu-batched-algorithm">GPU batched algorithm</h2>
+<p>To truly accelerate the algorithm, we need to be performing updates on a batch of points per iteration, instead of just one as we were doing.</p>
+<div class="cell" data-outputid="a221d0dc-9765-44e5-eacb-16c27a3fdf50" data-execution_count="40">
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>bs<span class="op">=</span><span class="dv">5</span></span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> data.clone()</span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> X[:bs]</span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>x.shape,X.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="40">
+<pre><code>(torch.Size([5, 2]), torch.Size([1500, 2]))</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="41">
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> dist_b(a,b): <span class="cf">return</span> (((a[<span class="va">None</span>]<span class="op">-</span>b[:,<span class="va">None</span>])<span class="op">**</span><span class="dv">2</span>).<span class="bu">sum</span>(<span class="dv">2</span>)).sqrt()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="2c35ba6e-2429-4432-b718-221b626ace5a" data-execution_count="42">
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>dist_b(X, x)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="42">
+<pre><code>tensor([[ 0.000,  3.899,  4.834,  ..., 17.628, 22.610, 21.617],
+        [ 3.899,  0.000,  4.978,  ..., 21.499, 26.508, 25.500],
+        [ 4.834,  4.978,  0.000,  ..., 19.373, 24.757, 23.396],
+        [ 3.726,  0.185,  4.969,  ..., 21.335, 26.336, 25.333],
+        [ 6.273,  5.547,  1.615,  ..., 20.775, 26.201, 24.785]])</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="49157a45-e6d7-49b5-f929-853d919cbb99" data-execution_count="43">
+<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>dist_b(X, x).shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="43">
+<pre><code>torch.Size([5, 1500])</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="5bc3c842-81b4-404a-b7aa-c2ebcd1988ee" data-execution_count="44">
+<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>X[<span class="va">None</span>,:].shape, x[:,<span class="va">None</span>].shape, (X[<span class="va">None</span>,:]<span class="op">-</span>x[:,<span class="va">None</span>]).shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="44">
+<pre><code>(torch.Size([1, 1500, 2]), torch.Size([5, 1, 2]), torch.Size([5, 1500, 2]))</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="b39c0a5d-ac55-45ce-a43e-dc118b24caf2" data-execution_count="45">
+<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>weight <span class="op">=</span> gaussian(dist_b(X, x), <span class="dv">2</span>)</span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>weight</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="45">
+<pre><code>tensor([[    0.199,     0.030,     0.011,  ...,     0.000,     0.000,     0.000],
+        [    0.030,     0.199,     0.009,  ...,     0.000,     0.000,     0.000],
+        [    0.011,     0.009,     0.199,  ...,     0.000,     0.000,     0.000],
+        [    0.035,     0.199,     0.009,  ...,     0.000,     0.000,     0.000],
+        [    0.001,     0.004,     0.144,  ...,     0.000,     0.000,     0.000]])</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="032bbb1a-dcad-4844-9652-fbb2fbe02856" data-execution_count="46">
+<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>weight.shape,X.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="46">
+<pre><code>(torch.Size([5, 1500]), torch.Size([1500, 2]))</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="8abfccd9-9bdd-46d4-bb6a-49991798eca4" data-execution_count="47">
+<div class="sourceCode cell-code" id="cb69"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>weight[...,<span class="va">None</span>].shape, X[<span class="va">None</span>].shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="47">
+<pre><code>(torch.Size([5, 1500, 1]), torch.Size([1, 1500, 2]))</code></pre>
+</div>
+</div>
+<p>So this is going to add an access to the end. So this is going to turn this is going to turn weight dot shape from five comma 1500 to 5 comma 1500 from a one. And this is going to add an access to the start. Remember, it’s the same as X[None] = X[None,:,:]. And so let’s check our rules left, right to left. These are compatible because one of them is one. These are compatible because they’re both the same. And these are compatible because one of them is one. Okay? So it’s going to be copying each weight across to each of the X and Y, which is what we want. We want to we want to weight both of those components and it’s going to copy each of the 1500 points sorry, each of the point five times, because we do in fact want to wait every one of the five things now, mini batches, the separate set of weights for each of them. So that sounds perfect. So that’s how I think through these calculations. Okay. So we can now do that multiplication, which is going to give us something of five by 1500 by two, because we end up with the maximum of our ranks. And then we sum up over those 1500 points and that’s going to give us now five new data points. Now, something that you might notice here is that we’ve got a product and a sum</p>
+<div class="cell" data-outputid="3ae8139c-cede-497c-9347-c9e735871f5c" data-execution_count="48">
+<div class="sourceCode cell-code" id="cb71"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>num <span class="op">=</span> (weight[...,<span class="va">None</span>]<span class="op">*</span>X[<span class="va">None</span>]).<span class="bu">sum</span>(<span class="dv">1</span>)</span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>num.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="48">
+<pre><code>torch.Size([5, 2])</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="2306a7e9-e25c-4bae-8115-e0666f897337" data-execution_count="49">
+<div class="sourceCode cell-code" id="cb73"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>num</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="49">
+<pre><code>tensor([[367.870, 386.231],
+        [518.332, 588.680],
+        [329.665, 330.782],
+        [527.617, 598.217],
+        [231.302, 234.155]])</code></pre>
+</div>
+</div>
+<p>And when you say a product and a sum that tells you maybe we should use einsum. So in this case, we’ve got our weight, we’ve got five by 1500. So let’s call those i and j As for the five and 1500 we’ve got, the X is 1500 by two. Now we want to take the product of that and that so wanted to use the same name for this row. So he use j again. And then k is the number of rows, that’s the two. And then we want to end up with ik. So einsum, exactly the same result. That’s great. But you might recognize this. That’s exactly the einsum Something we had just before when we were doing matrix multiplication. Oh, that is a matrix multiplication. We’ve just re-invented matrix multiplication using this rather nifty. So we could also just use that. And so, you know, again, this is like what I was playing around with this morning as I started to look at this and I was thinking like, Oh, you know, can we simplify this? I don’t like this kind of like messing around of axes and summing over dimensions and whatnot. And so it’s nice to get things down to Einstein or better still, get down to matrix multipliers. It’s just clearer, you know, it’s stuff that we recognize because we use them all the time they all work performance would be pretty similar. I suspect. Okay, so now that we’ve got that, we then need to do our sum and we’ve got our five points. This is our five denominators. So we’ve got our numerator that we calculated up here for our weighted for our weighted average. The denominator is just the sum of the weights, remember.</p>
+<div class="cell" data-outputid="33991e6a-fbfe-458a-f594-6ab86b440bfa" data-execution_count="50">
+<div class="sourceCode cell-code" id="cb75"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>torch.einsum(<span class="st">'ij,jk-&gt;ik'</span>, weight, X)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="50">
+<pre><code>tensor([[367.870, 386.231],
+        [518.332, 588.680],
+        [329.665, 330.782],
+        [527.617, 598.218],
+        [231.302, 234.155]])</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="324a3bb1-7c3b-4dad-d029-67e143402b25" data-execution_count="51">
+<div class="sourceCode cell-code" id="cb77"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a>weight<span class="op">@</span>X</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="51">
+<pre><code>tensor([[367.870, 386.231],
+        [518.332, 588.680],
+        [329.665, 330.782],
+        [527.617, 598.218],
+        [231.302, 234.155]])</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="75789b47-108f-4543-f5f3-226b9b74e8f7" data-execution_count="52">
+<div class="sourceCode cell-code" id="cb79"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a>div <span class="op">=</span> weight.<span class="bu">sum</span>(<span class="dv">1</span>, keepdim<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb79-2"><a href="#cb79-2" aria-hidden="true" tabindex="-1"></a>div.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="52">
+<pre><code>torch.Size([5, 1])</code></pre>
+</div>
+</div>
+<p>And so numerator, divided by denominator is our answer. So again, we’ve gone through every we’ve checked out all the dimensions all along the way. So nothing’s going to surprise us. Don’t try and write a function like this. Just bang from scratch. Right. You’re going to drive yourself crazy. Instead, do it step by step. So here’s our meanshift algorithm, clone the data, go through five iterations, and now go from 0 to n and batch size at a time. So Python has something called slices so we can create a slice of X starting at one up to i + batch size. Right. Unless it’s gone past, in which case use n.&nbsp;And so then we’re just copying and pasting each of the lines of code that we had before. Actually had us copy the cells and merge them. Of course I don’t actually copy and paste because it’s slow and boring and there’s my final step to create the new X[s]. And so notice here s is not a single thing. It’s a slice of things you might not have seen slice before, but this is just internally what Python’s doing when he is :, And it’s very convenient when you to use the same slice multiple times. Okay, so let’s do that using Cuda. I would run it first without cuda, but I mean, I’ve done all the steps before, so it should be fine so puppet on the GPU and run meanshift and let’s see how long that takes. It takes one millisecond and previously without GPU, it took 400 milliseconds. And you know, the other thing we should probably think about doing is looking at other batch sizes as well because now we’re looping over batches, right? So if we make the batch size bigger that for loop, it’s going to do less looping. So what if we make that 16? Will that be any faster?</p>
+<div class="cell" data-outputid="2d89d0ea-7b1d-4ed2-e8d5-9d5ef013243c" data-execution_count="53">
+<div class="sourceCode cell-code" id="cb81"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a>num<span class="op">/</span>div</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="53">
+<pre><code>tensor([[26.376, 27.692],
+        [26.101, 29.643],
+        [28.892, 28.990],
+        [26.071, 29.559],
+        [29.323, 29.685]])</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="54">
+<div class="sourceCode cell-code" id="cb83"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> meanshift(data, bs<span class="op">=</span><span class="dv">500</span>):</span>
+<span id="cb83-2"><a href="#cb83-2" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="bu">len</span>(data)</span>
+<span id="cb83-3"><a href="#cb83-3" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> data.clone()</span>
+<span id="cb83-4"><a href="#cb83-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> it <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">5</span>):</span>
+<span id="cb83-5"><a href="#cb83-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">0</span>, n, bs):</span>
+<span id="cb83-6"><a href="#cb83-6" aria-hidden="true" tabindex="-1"></a>            s <span class="op">=</span> <span class="bu">slice</span>(i, <span class="bu">min</span>(i<span class="op">+</span>bs,n))</span>
+<span id="cb83-7"><a href="#cb83-7" aria-hidden="true" tabindex="-1"></a>            weight <span class="op">=</span> gaussian(dist_b(X, X[s]), <span class="fl">2.5</span>)</span>
+<span id="cb83-8"><a href="#cb83-8" aria-hidden="true" tabindex="-1"></a><span class="co">#             weight = tri(dist_b(X, X[s]), 8)</span></span>
+<span id="cb83-9"><a href="#cb83-9" aria-hidden="true" tabindex="-1"></a>            div <span class="op">=</span> weight.<span class="bu">sum</span>(<span class="dv">1</span>, keepdim<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb83-10"><a href="#cb83-10" aria-hidden="true" tabindex="-1"></a>            X[s] <span class="op">=</span> weight<span class="op">@</span>X<span class="op">/</span>div</span>
+<span id="cb83-11"><a href="#cb83-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> X</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Although each iteration still has to launch a new cuda kernel, there are now fewer iterations, and the acceleration from updating a batch of points more than makes up for it.</p>
+<p>Oh, I see. Thank you. People on YouTube pointing out that I’m passing batch size, so I actually need to put it here. All right. So if we used a batch size of five, I wonder is missing. Oh, look at that. I’ve totally made it slow now. And in 57 milliseconds. Haha. Okay. 64, All right. Finally, that makes much more sense. Okay, so the bigger, bigger is better. And I guess we could actually do all 5000 at once. Probably nice. All right. Thank you YouTube friends, for solving that bizarre mystery. Okay. All right. So that’s pretty great. I mean, you know, to say that we can you optimize a meanshift like actually google for this to see if it’s been done before. And it’s the kind of thing that people, like write papers about. So I think it’s great that we can do it so easily with PyTorch. And it’s the kind of thing that previously had been considered, you know, a very challenging academic problem to solve. So maybe you can do something similar with some of these. Now, I haven’t told you what these are. So part of the homework is to go read about them and learn about them. dbscan, funnily enough, actually is an algorithm that I accidentally invented and then discovered a year later had already been invented.</p>
+<p>LSH comes up all the time, so that’s great. And in fact I have a strong feeling and I’ve been thinking about this for a while, that something like LSH could be used to speed this whole thing up a lot. Because if you think about it and again, maybe already this already exists, I don’t know. But if you think about it, when we did that distance calculation, the vast majority of the the weights or nearly zero. And so it seems pointless to create that big you know kind of eventually 1500 by 1500 matrix. That’s like it’d be much better if we just found the ones that were like pretty close by and just took their average. And so you want an optimized nearest neighbors, basically. And so this is an example of something that can give you a, an, a kind of a fast nearest neighbors algorithm or, you know, there are things like. kd trees and trees and stuff like that. So if you want to, like have a bonus bonus, invent a new meanshift algorithm which picks only the closest points to avoid the quadratic time. All right. So not very often you get an assignment, which is to invent a new meanshift algorithm, I guess a super, super bonus. Super, super bonus. Publish a paper that describes it. All right. You definitely get four points. If you do that, we’ll give you a number of points equal to the impact factor of the journal. You get it published in. Okay. So what I want to do now is move on to calculus, which for some of us may not be our favorite topic. Yeah, that’s funny. I found out that I in some version here already, I didn’t notice. Okay. Or is ahead of his time. That guy. Let’s talk about calculus. If you’re not super comfortable with derivatives and what they are and why we care. called The Essence of Calculus, which I strongly recommend watching. It’s just a pleasure, actually, to watch, as is everything that is on 3blue1brown.</p>
+<div class="cell" data-execution_count="55">
+<div class="sourceCode cell-code" id="cb84"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> data.cuda()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="56">
+<div class="sourceCode cell-code" id="cb85"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> meanshift(data).cpu()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="b40c705d-8c84-4091-ff03-dd6846f050b8" data-execution_count="57">
+<div class="sourceCode cell-code" id="cb86"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>timeit <span class="op">-</span>n <span class="dv">5</span> _<span class="op">=</span>meanshift(data, <span class="dv">1250</span>).cpu()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>6.06 ms ± 746 µs per loop (mean ± std. dev. of 7 runs, 5 loops each)</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="1acfbdc7-af9f-4d51-82de-6e77aac7a0a2" data-execution_count="58">
+<div class="sourceCode cell-code" id="cb88"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a>plot_data(centroids<span class="op">+</span><span class="dv">2</span>, X, n_samples)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-59-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p><strong>Homework:</strong> implement k-means clustering, dbscan, locality sensitive hashing, or some other clustering, fast nearest neighbors, or similar algorithm of your choice, on the GPU. Check if your version is faster than a pure python or CPU version.</p>
+<p>Bonus: Implement it in APL too!</p>
+<p>Super bonus: Invent a new meanshift algorithm which picks only the closest points, to avoid quadratic time.</p>
+<p>Super super bonus: Publish a paper that describes it :D</p>
+<p>Where do we start. So the good news is just like you don’t have to know much linear algebra at all, you basically just need to know about matrix multiplication. You also don’t need to know much calculus at all. Just derivatives. So let’s think about like what derivatives are. So I’m going to borrow actually the same starting point that when 3blue1brown uses one of their videos is to consider a car, and we’re going to see how far away from home it is at various time points. Okay. So after a minute, let’s say after a second, it’s traveled five meters and then after 2 seconds, it’s traveled ten meters. Okay. And after 3 seconds, you can probably guess it’s traveled 15 meters. So there’s this concept here of a I got it the wrong way around. Obviously. So time, distance. Okay. So there’s this concept of Yeah, of like location. It’s like how far how far if you traveled at a particular point in time. So we can look at one of these points and find out how far that car has gone. We could also take two points and we can say, where did it start at the start of those two points and where did it finish at the end of those two points. And we can say between those two points, how much time passed and how far did they travel? In 2 seconds. They traveled ten meters. So we could now also say, all right, well, the slope of something, let’s rise over, run. You’ll see.ten meters in 2 seconds. And notice we don’t just divide the numbers. We also divide the units. We get five meters per second. So this here is now changed the dimensions entirely. We’re now not looking at distance, but we’re looking at speed or velocity. And it’s equal to rise over run. It’s equal to the rate of change. And what it says really is as time the X-axis goes up by one second, what happens to the distance in meters as one second passes? How does the number of meters change?</p>
+<p>And so maybe these aren’t points at all. Maybe there’s a function that it’s a continuum of points, and so you can do that for the function. So the function is a function of time. Distance is a function of time. And so we could say, what’s the slope of that function? And we can get the slope from point A to point B using over run. So from T one to T two the amount of distance, that’s the amount of time that’s passed is T2 minus T1. That’s how much time has passed that say this is t one, this is t two and the distance that they’ve traveled while they’ve moved from wherever they are at the end to wherever they were at the start. So that’s the change in distance, divided by the change in time, Change in distance, divided by change in time. Okay, So that’s why. So another way. Now the thing is, when we talk about calculus, we talk about finding a slope, but we talk about finding a slope of something that’s more often more tricky than this, right? We have slopes of things that look more like this and we say, what’s this slope absent Terrible attempt at drawing? Let’s maybe put it over here because I’m left handed. What’s this slope now? What does it mean to have like the idea of a velocity at an exact moment in time? It doesn’t mean anything, you know, at an exact moment in time, you’re just like it’s frozen. Right? What’s happening exactly now? But what you can do is you can say, well, what’s the change in time between a bit before a point and bit after a point? And what’s the change in distance between a bit before our point and a bit after our point? And so you can do the same kind of rise over run the thing, right? But you can make that distance between T2 and T1 smaller and smaller and smaller. So let’s rewrite this in a slightly different way. Let’s call the denominator the distance between T1 plus a little bit I’ll call it d, it’s that minus T1. So this is T2 = T1+d, right?</p>
+<p>It’s T1 pluss a little bit. So we say oh his T1. Let’s add a little bit and notice that we when we write it this well let’s actually, let’s do the rest of it. So now f52 becomes f of t one plus a little bit and this is the same. And now notice here that t one plus t minus t one. We can delete all that because it just comes out to d.&nbsp;So this is another way of calculating the slope of our function. And as you get smaller and smaller and smaller, we’re kind of getting a triangle that’s tinier and tinier and tinier and it still makes sense it still that some time has passed and the car has moved, right? But it’s just smaller and smaller amounts of time. Now, if you did calculus at that college or at school, you might have done all this stuff messing around with limits, Epsilon Delta and blah, blah, blah. I’ve got really good news. It turns out you can actually just think of this d as a really small number where d is the difference if, uh, it’s. And so when we calculate the slope, we can write it in a slightly different way as the change in dY divided by the change in dX, this here is the change in dY, and this here is the change in dX. And so in other words, this here is a very small number. A very small number, and this here is the result in the function of changing by that very small number. And this way of thinking about calculus is known as the calculus of in infinitesimal. and it’s how Leibniz its originally developed it. And it’s been turned into a whole theory nowadays. And the reason I talk about it here is because when we do calculus, you’ll see me doing stuff all the time where. I act like the dx is a really small number. And when I was at school I was told I wasn’t allowed to do that. I’ve since learned that it’s totally fine, do that.</p>
+<p>So, for example, next lesson, we’re going to be looking at the chain role, which looks like this. The dy/dx equals to dy/du * du/xd And I’m just going to say, Oh, these two small numbers can cancel out. And that’s why obviously they’re the same thing and that’s all going to work out nicely. So what do you know? What would be very helpful would be if before the next lesson, if you’re not totally up to date with your, you know, remembering all the stuff you did in high school about calculus is watch the 3blue1brown Course, we are not going to be looking. I don’t think at all that integration. So you don’t have to worry about that. Also we are not going to on the whole be doing any derivatives by hand. So for example, there are rules such as to why the dy/dx, if y equals x squared is 2x, these kind of rules, you’re not really going to have to learn because PyTorch is going to do them all for you. The one that we care about is going to be the chain role that we’re going to learn about that next time. Okay. I hope I don’t get beaten to a bloody pulp the next time I walk into a mathematician’s conference, I suspect I might. But hopefully I get away with this. I think it’s safe. We’ll see how we go. So thanks, everybody very much for joining me and really look forward to seeing you next time where we’re going to do backpropagation from scratch. We’ve already learned to multiply matrices, so once we’ve got backpropagation as well, we’ll be ready to train a neural network. All right. Thanks So.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

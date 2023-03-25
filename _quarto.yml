@@ -1,0 +1,30 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Bahman Sadeghi" 
+  site-url: https://bahmansadeghi.com
+  description: "This is Bahman Sadeghi's personal Blog."
+  google-analytics: "G-6DEHC34SZW"
+  navbar:
+    background: success
+    right:
+      - text: Home
+        href: index.qmd 
+      - text: About Me
+        href: about.qmd 
+      - icon: rss
+        href: index.xml
+      - icon: github
+        href: 'https://github.com/bahmanapl'
+      - icon: twitter
+        href: 'https://twitter.com/Bahman_Apl'
+
+          
+format:
+  html:
+    theme: cyborg
+    css: styles.css
+    toc: true
+

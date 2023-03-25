@@ -1,0 +1,24 @@
+---
+listing:
+  contents: posts
+  sort: "date desc"
+  type: table
+  categories: true
+  sort-ui: false
+  filter-ui: false
+  feed: true
+  fields: [date, title, reading-time]
+  page-size: 10
+page-layout: full
+title-block-banner: true
+---
+<div>
+  <a href="https://www.buymeacoffee.com/bahmansadeghi">
+    <img src="/bmc.png" alt="Buy Me a Coffe link" width="200" height="75">
+  </a>
+  <a href="https://bahmansadeghi.com/about.html">
+    <img src="/mypic.JPG" alt="Buy Me a Coffe link" class="rounded-circle"s width="75" height="75">
+  </a>
+</div>
+
+

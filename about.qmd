@@ -1,0 +1,37 @@
+---
+title: "Bahman Sadeghi"
+navbar: false
+theme: cyborg
+image: mypic.JPG
+about:
+  template: jolla
+  image-shape: round
+  image-width: 10em
+  links:
+    - text: My Projects
+      icon: laptop
+      href: https://www.mydopeideas.com
+    - text: My Blog
+      icon: pencil-square
+      href: https://www.bahmansadeghi.com
+    - text: Email
+      icon: envelope
+      href: apl.bahman@gmail.com
+    - text: GitHub
+      icon: github
+      href: https://github.com/bahmanapl
+    - text: Twitter
+      icon: twitter
+      href: https://twitter.com/Bahman_Apl
+    - text: Telegram
+      icon: telegram
+      href: https://t.me/batmansa
+    - text: Discord
+      icon: discord
+      href: https://discord.gg/f8uBaTnZ  
+--- 
+Meet Bahman, a software developer passionate for exploring new cultures, languages and foods. With experience living in Asia, North America and Europe, He loves traveling and immersing himself in different ways of life. He considers North California his home. In his free time, you can find him delving into novels, watching captivating TV shows, and expanding his knowledge of deep learning. As a minimalist and follower of Stoic principles, Bahman approaches his personal and professional life with intention and purpose.This bio was written by the help of ChatGPT.
+---
+<a href="https://www.buymeacoffee.com/bahmansadeghi">
+  <img src="/bmc.png" alt="Buy Me a Coffe link" width="250" height="75">
+</a>
