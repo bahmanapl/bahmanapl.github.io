@@ -245,43 +245,43 @@ gtag('config', 'G-6DEHC34SZW', { 'anonymize_ip': true});
 <p>And so we’re going to create six clusters that each cluster is going to have 750 samples in it. So first of all, I’m going to randomly six centroid. And so the centroid is going to be like the middle of where my clusters are. So I’m going to randomly create them. I need to (n_clusters,2). So I need an X and Y coordinate for each one. And so now I’m going to randomly generate data around those six centroid. Okay. So to do that, I’m going to call a little function I made here called Sample, and I’m going to run it on each of those six centroid and show you what that looks like. So here’s what that data looks like. So the X’s, the six centroid and the colored dots is the data. So if you were given this data without the X’s, the idea would be to come out, come back with figuring out where the X’s would have been, like where are the where are these clustering around? And so if you can get clusters like that, that’s the goal here, is to find out that there’s a fewer discretely, distinctly different types of data in your data set. So for example, for images, I’ve used this before to discover that there are some images that look completely different to all the other ones. For example, they were taken at night time or they’re of a different object or something like that.</p>
 <p>Clustering techniques are unsupervised learning algorithms that try to group unlabelled data into “clusters”, using the (typically spatial) structure of the data itself. It has many <a href="https://en.wikipedia.org/wiki/Cluster_analysis#Applications">applications</a>.</p>
 <p>The easiest way to demonstrate how clustering works is to simply generate some data and show them in action. We’ll start off by importing the libraries we’ll be using today.</p>
-<div class="cell" data-execution_count="1">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> math, matplotlib.pyplot <span class="im">as</span> plt, operator, torch</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> functools <span class="im">import</span> partial</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="2">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>torch.manual_seed(<span class="dv">42</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>torch.set_printoptions(precision<span class="op">=</span><span class="dv">3</span>, linewidth<span class="op">=</span><span class="dv">140</span>, sci_mode<span class="op">=</span><span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <section id="create-data" class="level2">
 <h2 class="anchored" data-anchor-id="create-data">Create data</h2>
-<div class="cell" data-execution_count="3">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>n_clusters<span class="op">=</span><span class="dv">6</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>n_samples <span class="op">=</span><span class="dv">250</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>To generate our data, we’re going to pick 6 random points, which we’ll call centroids, and for each point we’re going to generate 250 random points about it.</p>
-<div class="cell" data-execution_count="4">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>centroids <span class="op">=</span> torch.rand(n_clusters, <span class="dv">2</span>)<span class="op">*</span><span class="dv">70</span><span class="op">-</span><span class="dv">35</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="5">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> torch.distributions.multivariate_normal <span class="im">import</span> MultivariateNormal</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> torch <span class="im">import</span> tensor</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>So how does sample work? Well, we’re passing in the centroid, and so what we want is we’re going to get back. So each of those centroid contains an X in a Y. So multivariate normal is just like normal. It’s going to give you back normally distributed data, but more than one item. That’s why it’s multivariate. And so we passed in two means a main for X and a mean for our Y. And so that’s the mean that we’re going to get. And our standard deviation is going to be five. Why do we use torch.diag(tensor([5.,5.])))? That’s because we’re saying that because that for multivariate normal distributions, there’s not just one standard deviation. Each column that you get back, there could also be a connection between columns. The columns might not be independent. So you actually need so it’s called a covariance matrix, not just to make, not just a variance. We discussed that a little bit more in lesson 9B if you’re interested in learning more about that. Okay, So this is something that’s going to give us back random columns of data with this mean and this standard deviation.</p>
 <p>And this is the number of samples that we want and this is coming from PyTorch. So PyTorch has a whole bunch of different distributions that you can use, which can be very handy. So there is our data. Okay. So remember, for sample clustering, we we don’t know the different colors and we don’t know where the X is. That’s kind of our job is to figure that out. We might just briefly also look at how to plot. So in this case, we want to plot the X s and we want to plot the data so it looks like this. So what I do is I look through each centroid and I grab that centroid samples and they’re just all done in order. So I grab it from i<em>n_samples: to (i+1)</em>n_samples, and then I create a scatterplot with the samples on them. And what I’ve done is I’ve created an axis here and you’ll see y later that we can also pass one in. But I’m not passing one it. And so we create a plot and an axis. And so in that matplotlib, you can keep plotting things on the same axis. So then I plot on the centroid a big x, which is black, and then a smaller x, which is what is that magenta? And so that’s how I get these X’s. So that’s how plot data works. Okay, so how do we create something now that starts with all the dots and returns where the X is are ? We’re going to use a particular algorithm, particular clustering algorithm called meanshift.</p>
-<div class="cell" data-execution_count="6">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sample(m): <span class="cf">return</span> MultivariateNormal(m, torch.diag(tensor([<span class="fl">5.</span>,<span class="fl">5.</span>]))).sample((n_samples,))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-outputid="243831a4-aa19-419a-bb85-561826012d77" data-execution_count="7">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>slices <span class="op">=</span> [sample(c) <span class="cf">for</span> c <span class="kw">in</span> centroids]</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> torch.cat(slices)</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>data.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="7">
+<div class="cell-output cell-output-display">
 <pre><code>torch.Size([1500, 2])</code></pre>
 </div>
 </div>
 <p>Below we can see each centroid marked w/ X, and the coloring associated to each respective cluster.</p>
-<div class="cell" data-execution_count="8">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_data(centroids, data, n_samples, ax<span class="op">=</span><span class="va">None</span>):</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> ax <span class="kw">is</span> <span class="va">None</span>: _,ax <span class="op">=</span> plt.subplots()</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, centroid <span class="kw">in</span> <span class="bu">enumerate</span>(centroids):</span>
@@ -290,7 +290,7 @@ gtag('config', 'G-6DEHC34SZW', { 'anonymize_ip': true});
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>        ax.plot(<span class="op">*</span>centroid, markersize<span class="op">=</span><span class="dv">10</span>, marker<span class="op">=</span><span class="st">"x"</span>, color<span class="op">=</span><span class="st">'k'</span>, mew<span class="op">=</span><span class="dv">5</span>)</span>
 <span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>        ax.plot(<span class="op">*</span>centroid, markersize<span class="op">=</span><span class="dv">5</span>, marker<span class="op">=</span><span class="st">"x"</span>, color<span class="op">=</span><span class="st">'m'</span>, mew<span class="op">=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-outputid="5a1ede84-af40-46a9-cee6-a75fb1fa9e1e" data-execution_count="9">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>plot_data(centroids, data, n_samples)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <p><img src="index_files/figure-html/cell-10-output-1.png" class="img-fluid"></p>
@@ -305,14 +305,14 @@ gtag('config', 'G-6DEHC34SZW', { 'anonymize_ip': true});
 <p>And and meanshift is a nice clustering approach because you don’t have to say how many clusters there are. So it’s not that often that you’re actually going to know how many clusters there are. So we don’t have to say quite a few things, like the very popular K means required to say how many in step. You just have to pass them in quite a bandwidth, which we’ll learn about, which can actually be chosen automatically. And it can also handle clusters of any shape so they don’t have to be bold shaped like that. But they are here. They can be kind of like L-shaped or ellipse shaped or whatever. And so here’s what’s going to happen. We’re going to pick some point. So let’s say we pick that point just there. Okay? And so what we now do is we go through each data point, so we pick the first one, and so we then find the distance between that point and every other point. Okay. So we’re going to have to say what is the distance between that point and that point? And point and that point and that point and that point and also the ones further away, that point and that point. And you do it for every single point compared to the one that we’re currently looking at. Okay. So we get all of those as a big list. And now what we’re going to do is we’re going to take a weighted average of all of those points. Now That’s not interesting without the weighting. If we just take our average of all of the points and how far away they are, we’re going to end up somewhere here, right? This is the average of all the points. But the key is that we’re going to take an average and find the right spot. The key is we need to find an average that is weighted by how far away things are.</p>
 <p>So, for example, this one over here is a very long way away from our point of interest. And so it should have a very low weight and the weighted average where else this point here, which is very close, should have a very high weight in our weighted average. So What we do is we create weights for every point compared to the one that we’re currently interested in using a what’s called a Gaussian kernel that we’ll look at. But the key thing to know is that points that are further away from our point of interest, which is this one, are going to have lower weights. That’s what we mean, that they’re penalized. The rate at which weights for a zero is determined by this thing that we set at the start called the bandwidth. And that’s going to be the standard deviation of our Gaussian. So we take an average of all the points in the dataset, a weighted average weighted by how far away they are. So for our point of interest, right, the this point is going to get a big weight. This point is going to get a big weight. This point is going to get a big weight. That point is going to get a tiny weight.</p>
 <p>That point is going to get an even tiny weight. So it’s mainly going to be a weighted average of these points at a nearby. And the weighted average of those points, I would guess, is going to be somewhere around about here. Right. And would have a similar thing for the weighted average of the points near this one. That’s going to probably be somewhere around about here or maybe over here. And so it’s going to move all of these points in closer. It’s almost like a gravity right. They’re kind of going to be moved like closer and closer in towards this kind of gravitational center. And then these ones will go towards their own gravitational center and so forth. Okay.</p>
-<div class="cell" data-outputid="427cd7e5-b2fa-499c-ed18-13756f75c95e" data-execution_count="10">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>midp <span class="op">=</span> data.mean(<span class="dv">0</span>)</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>midp</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="10">
+<div class="cell-output cell-output-display">
 <pre><code>tensor([ 9.222, 11.604])</code></pre>
 </div>
 </div>
-<div class="cell" data-outputid="85393fca-7d90-473e-a8e3-0aaa24afe774" data-execution_count="11">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>plot_data([midp]<span class="op">*</span><span class="dv">6</span>, data, n_samples)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <p><img src="index_files/figure-html/cell-12-output-1.png" class="img-fluid"></p>
@@ -322,15 +322,15 @@ gtag('config', 'G-6DEHC34SZW', { 'anonymize_ip': true});
 <p>So here’s the definition of the gaussian kernel, which you may remember from high school… This person at the science march certainly remembered!</p>
 <p><img src="http://i.imgur.com/nijQLHw.jpg" width="400"></p>
 <p>Okay. And bw is the standard deviation. Now what does that look like? It’s very helpful to have something that we can very quickly plot any function that doesn’t come with matplotlib , but it’s very easy to write one. Just say, oh, let’s as X, let’s use all the numbers from 0 to 10, a hundred of them spaced evenly. That’s what linspace Does. it linearly spaced 100 numbers in this range. That’s going to be our Xs. So plot those Xs and plot F of X is the Ys. So here’s a very nice little plot_func, we want. And here it is. And as you can see here, we’ve now got something where if you are this like very close to the point of interest, you’re going to get a very high weight. And if you’re a long way away from the point of interest, you’ll get a very low weight. So that’s the key thing that we wanted to remember is something that penalizes further away points more. Now, you’ll notice here I’ve managed to plot this function for a bandwidth of 2.5, and the way I did that was using this special thing from functools(functools.partial), . Now, the first thing to point out here is that very often drives me crazy. I see people trying to find out what something is in Jupiter, and the way they do it is they’ll scroll up to the top of the notebook and search through the imports and try to find it. That is the dumb way to do it. The smart way to do it is just to type it and press shift enter and it’ll tell you where it comes from and you can get its help with Question Mark and you can get it also source code with two question marks. Okay, So just type it to find out where it comes from. Okay. So this is as Sylver mentioned in the chat, also known as carrying or partial function application. This creates a new function. So let’s just grab it. We create a new function. And this function F is is the function Gaussian, but it’s going to automatically pass. BW equals 2.5. So this is a partially applied function.</p>
-<div class="cell" data-execution_count="12">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> gaussian(d, bw): <span class="cf">return</span> torch.exp(<span class="op">-</span><span class="fl">0.5</span><span class="op">*</span>((d<span class="op">/</span>bw))<span class="op">**</span><span class="dv">2</span>) <span class="op">/</span> (bw<span class="op">*</span>math.sqrt(<span class="dv">2</span><span class="op">*</span>math.pi))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="13">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_func(f):</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> torch.linspace(<span class="dv">0</span>,<span class="dv">10</span>,<span class="dv">100</span>)</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    plt.plot(x, f(x))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-outputid="445f4c42-fbdf-4a26-e94d-661dadfa1808" data-execution_count="14">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>plot_func(partial(gaussian, bw<span class="op">=</span><span class="fl">2.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <p><img src="index_files/figure-html/cell-15-output-1.png" class="img-fluid"></p>
@@ -339,22 +339,22 @@ gtag('config', 'G-6DEHC34SZW', { 'anonymize_ip': true});
 <p>So I could type f of four f(tensor(4.0)), for example, that’s going to be a tensor. There we go. And you can see that’s exactly what this is got to for across. Yep, about .44. So we use partial function application all the time. It’s a very, very, very important tool. Without it, for example, plotting this function would have been more complicated with it. It was trivially easy. I guess the alternative, like one alternative which would be fine but slightly more clunky, would be we could create a little function in line so we could have said, Oh, plot a function. Then I’m going to define right now, which is called lamb, which is lambda X, which is Gaussian and of X with a bandwidth of 2.5. You could do that too. You know, it’s it’s fine, but, but yeah, partials I think are a bit neater, a bit less to think about.</p>
 <p>They often produce some nature and clearer code. Okay. Why did we decide to make the bandwidth 2.5 as a as a rule of thumb, choose a bandwidth which covers about a third of the data. So if we kind of found ourselves somewhere over here, write a bandwith which covers about a third of the data would be enough to cover two clusters ish. So it would be kind of like this big. So somewhere in the middle there. So that’s the basic idea. Yeah. So but you can play around with bandwidth and get different amounts of clusters. I should mention, like often when you see something that’s kind of on the complicated side, like a Gaussian, you can often simplify things. I think most implementations and write ups I’ve seen talk about using Gaussians, but if you look at the shape of it, it looks a lot like this shape. So this is a triangular weighting which is just using clamp_min So it’s just using a linear with clamp_min And yeah, it occurred to me that we could probably use this just as well. So I did find it.</p>
 <p>I decided to define this triangular weighting and then we can try both anyway. So I will start with we’re going to use the Gaussian version. All right. So we’re going to be move literally moving all the points towards the kind of center of gravity.</p>
-<div class="cell" data-execution_count="15">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>f <span class="op">=</span> partial(gaussian,bw<span class="op">=</span><span class="fl">2.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-outputid="437061db-02b8-4824-a64d-53bb919f733e" data-execution_count="16">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>f(tensor(<span class="fl">4.0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="16">
+<div class="cell-output cell-output-display">
 <pre><code>tensor(0.044)</code></pre>
 </div>
 </div>
-<div class="cell" data-outputid="101ea1e0-1f11-4572-a0f3-78e921713daf" data-execution_count="17">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>partial</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="17">
+<div class="cell-output cell-output-display">
 <pre><code>functools.partial</code></pre>
 </div>
 </div>
-<div class="cell" data-outputid="92d41787-945e-432a-aa57-c5f928c8001b" data-execution_count="18">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>plot_func(<span class="kw">lambda</span> x : gaussian(x,bw<span class="op">=</span><span class="fl">2.5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <p><img src="index_files/figure-html/cell-19-output-1.png" class="img-fluid"></p>
@@ -362,10 +362,10 @@ gtag('config', 'G-6DEHC34SZW', { 'anonymize_ip': true});
 </div>
 <p>In our implementation, we choose the bandwidth to be 2.5.</p>
 <p>One easy way to choose bandwidth is to find which bandwidth covers one third of the data.</p>
-<div class="cell" data-execution_count="19">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> tri(d, i): <span class="cf">return</span> (<span class="op">-</span>d<span class="op">+</span>i).clamp_min(<span class="dv">0</span>)<span class="op">/</span>i</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-outputid="6b147e56-6557-4bbf-9969-bdd33bef553b" data-execution_count="20">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>plot_func(partial(tri, i<span class="op">=</span><span class="dv">8</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <p><img src="index_files/figure-html/cell-21-output-1.png" class="img-fluid"></p>
@@ -374,25 +374,25 @@ gtag('config', 'G-6DEHC34SZW', { 'anonymize_ip': true});
 <p>So we don’t want to mess up our original data so we clone it. It’s a PyTorch thing is .clone (data.clone()), it’s very handy. And so Big X is our matrix of data. I mean, it’s actually a That’s right. Matrix of data. Yeah. And then little x will be our first point. And it’s pretty common to use big X a capital letters for matrices. So this is our data. This is the first point.</p>
 <p>Okay. So there it is. We’re going to start at 26.2, 26.3. So 26.2, 26.3. So somewhere up here, so little x, its shape is just it’s a rank one tensor of shape two. Big X is a rank two tensor of 1500 data points by two, the X and Y. And if we call x[None], that would add a unit axis to that. And the reason I’m going to show you that is because we want to find the distance from little x to everything in Big X and the way we do a distance is with minus, but you wouldn’t be able to go, you wouldn’t be able to go X minus big X and get the right actually to you get the right answer. Let’s think about that X shape. Oh, we’ve got that already. I know actually that is going to work isn’t it? So, yes. All right. So you can see why we’ve got these two versions here. If we do x[None], we’ve got something of shape. One comma, two. Now we can subtract that from something, a shape 1500 comma two, because the twos match up because they’re the same and the 1500 and the one matches up because we remember our Numpy roles, everything matches up to a unit axis. So it’s going to copy this matrix across every of this matrix and it works.</p>
 <p>But you remember there’s a special trick which is if you’ve got two shapes of different lengths, we can use the shorter length and it’s going to add unit axes to the front to make it as long as necessary. So we actually don’t need the x[None]. We can just use little x and it works because it’s going to say, is this compatible with this? Well, the last axis, remember we go right to left the last axis matches the second last axis, Oh, it doesn’t exist. So we pretend that there’s a unit axis, and so it’s going to do exactly the same thing as this. So if you have not studied the broadcasting from last week carefully, that might not have made a lot of sense to you. And so definitely at this point, you might want to pause the video and go back and reread the NumPy broadcasting rules from last time and practice them because that’s what we just did. We use numpy broadcasting rules and we’re going to be doing this dozens more times throughout the rest of the course and many more times, in fact, in this lesson.</p>
-<div class="cell" data-execution_count="21">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> data.clone()</span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> data[<span class="dv">0</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-outputid="9c3b8cee-a5d1-4b89-d164-6cea5bed47b6" data-execution_count="22">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>x</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="22">
+<div class="cell-output cell-output-display">
 <pre><code>tensor([26.204, 26.349])</code></pre>
 </div>
 </div>
-<div class="cell" data-outputid="b6fea91b-e6d8-4a5c-9bcd-6cfff5e8e345" data-execution_count="23">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>x.shape,X.shape,x[<span class="va">None</span>].shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="23">
+<div class="cell-output cell-output-display">
 <pre><code>(torch.Size([2]), torch.Size([1500, 2]), torch.Size([1, 2]))</code></pre>
 </div>
 </div>
-<div class="cell" data-outputid="dab439e5-94cc-4ab8-ed7e-78c6be77e732" data-execution_count="24">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>x<span class="op">-</span>X</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="24">
+<div class="cell-output cell-output-display">
 <pre><code>tensor([[ 0.000,  0.000],
         [ 0.513, -3.865],
         [-4.227, -2.345],
@@ -402,9 +402,9 @@ gtag('config', 'G-6DEHC34SZW', { 'anonymize_ip': true});
         [-4.964, 21.040]])</code></pre>
 </div>
 </div>
-<div class="cell" data-outputid="aa7ec304-366a-4420-dcf2-da3a6ab1f456" data-execution_count="25">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>(x[<span class="va">None</span>]<span class="op">-</span>X)[:<span class="dv">8</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="25">
+<div class="cell-output cell-output-display">
 <pre><code>tensor([[ 0.000,  0.000],
         [ 0.513, -3.865],
         [-4.227, -2.345],
@@ -415,9 +415,9 @@ gtag('config', 'G-6DEHC34SZW', { 'anonymize_ip': true});
         [-1.920, -5.686]])</code></pre>
 </div>
 </div>
-<div class="cell" data-outputid="af3fb5c7-a479-496f-da59-de2f1c6d1fe3" data-execution_count="26">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>(x<span class="op">-</span>X)[:<span class="dv">8</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="26">
+<div class="cell-output cell-output-display">
 <pre><code>tensor([[ 0.000,  0.000],
         [ 0.513, -3.865],
         [-4.227, -2.345],
@@ -433,44 +433,44 @@ gtag('config', 'G-6DEHC34SZW', { 'anonymize_ip': true});
 <p>They come up all the time, particularly because the two norm, which we could write like this or we could write like this or we could write like this, they’re all the two norm this is just saying it’s this equation for alpha equals two And Stefano is pointing out we should actually have an absolute value. I’m not going to worry about that. We’re just doing real numbers. So I keep things simple. Oh, I guess first higher than one. Now you’re probably right for something like three. Yeah, I guess we do need an absolute value there. That’s a good point because okay, we could have this one. And so the distance actually has to be the absolute value. So the change in x is the absolute value of that distance. Yes. Thank you, Stefano. Okay. So we’ll have the absolute value. Okay. So the two, norm, is what happens when every calls to and we would call this in this case, we would call this the Euclidean distance. But actually where it comes up more often is when you’re doing like a lost function.</p>
 <p>So the mean squared error is just while the root means squared error, I should say, is just the two norm. Where else the mean absolute error is the one norm. And these are also known as L2 and L1. And remember what we saw in that paper last week. We saw it in this form. There’s a two up here which is where they got rid of the square root again. So would have just been a change in x squared plus change in Y squared. And now we don’t even need the parentheses. Okay, so all of this is to say that for, you know, this comes up all the time because we’re very, very often interested in distances and errors and things like that. I’m trying to think I don’t feel like I’ve ever seen anything other than one or two. So although it is a general concept, I don’t think we’re going to see probably things other than one or two in this course. I’d be excited if we do, that would be kind of cool. So here we’re taking the Euclidean distance, which is the two on. So this has got eight things in it because we’ve summed it over dimension one. So here’s your first homework is to rewrite using torch.einsum, you won’t be able to get rid of the x minus x. You’ll still need to have that in there.</p>
 <p>But when you’ve got a multiply followed by a sum, now you want to get rid of the square root. Either you should be able to get rid of the multiply in the sum by doing it in a single torch.einsum. So we’re summing up over the first dimension, which is this dimension. So in other words, with summing up the X in the Y axis, okay, so now we can get the, the weights by passing those distance is into our gaussian. And so as we would expect, the biggest weights, it gets up 0.16. So the closest one is itself, it’s going to be at a big weight. These other ones get reasonable weights and the ones that are in totally different clusters have weights small enough that at three significant figures they appear to be zero. Okay, so we’ve got our weights. So there the weights are 1500 long vector and of course our original data is 1500 by two, the X and the Y for each one. So we now want a weighted average. We want this data, we want it’s average weighted by this. So normally an average is the sum of your data divided by the count. That’s a normal average weighted average item in your data. It’s let’s put some i’s around here. Just to be more clear, each item in your data is going to have a different weight. And so you multiply each one by the weights. And so rather than dividing by n, which is just the sum of ones, we would divide by the sum of weights. So is an important concept to be familiar with. Weighted averages. So we need to multiply every one of these x says by this.</p>
-<div class="cell" data-outputid="12046b01-12b2-4e33-8cb2-6f38ee857412" data-execution_count="27">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># rewrite using torch.einsum</span></span>
 <span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>dist <span class="op">=</span> ((x<span class="op">-</span>X)<span class="op">**</span><span class="dv">2</span>).<span class="bu">sum</span>(<span class="dv">1</span>).sqrt()</span>
 <span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>dist[:<span class="dv">8</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="27">
+<div class="cell-output cell-output-display">
 <pre><code>tensor([0.000, 3.899, 4.834, 3.726, 6.273, 4.122, 6.560, 6.002])</code></pre>
 </div>
 </div>
-<div class="cell" data-outputid="2b7854de-f3b7-4604-a2db-e2094338ccea" data-execution_count="28">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>weight <span class="op">=</span> gaussian(dist, <span class="fl">2.5</span>)</span>
 <span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>weight</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="28">
+<div class="cell-output cell-output-display">
 <pre><code>tensor([    0.160,     0.047,     0.025,  ...,     0.000,     0.000,     0.000])</code></pre>
 </div>
 </div>
-<div class="cell" data-outputid="e4b05523-7b9c-4e70-a02c-d3304d14cc0a" data-execution_count="29">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>weight.shape,X.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="29">
+<div class="cell-output cell-output-display">
 <pre><code>(torch.Size([1500]), torch.Size([1500, 2]))</code></pre>
 </div>
 </div>
 <p>Okay, so can we say weights times X? No.&nbsp;All right. Why didn’t that work? So remember, we go right to left. So first of all, it’s going to say, let’s look at the two and multiply that by the 15. Are they compatible? Things are compatible if they’re equal or if at least one of them is one. These are not equal and they’re not one, so they’re not compatible. That’s why it says the size of a tensor a, must match. Now, when it says match, it doesn’t mean they have to be the same. One of them can be one. Okay. That’s what it means to match. They’re either or. One of them is one. So that doesn’t work. On the other hand, what if this was 1500 comma one? If it was 1500 comma one, then they would match because the one and the two match because one of them’s a unit axis and the 1500 and the 1500 match because they had the same. So that’s what we’re going to do because that would then copy this to every one of these, which is what we want. We want weights for each of these (x,y) tuples. So to add the trailing unit axis, we say every row and a trailing unit axis.(weight[:,None]*X) So that’s what that shape looks like. So we can then multiply that by x and as you can see, it’s now weighting each of them. And so each of these x’s and y is down the bottom, they’re all zero. So we can sum that up and then divide by the sum of weights. So let’s now write a function that puts all this together so you can see this really important way of like to me, the only way that makes sense to do a particularly scientific numerical programing.</p>
 <p>I actually do all my programing this way, but particularly scientific numerical programing is write it all out step by step, check every piece, have it all that documented for you and for others, and then copy the cells, merge them together and indent them to indent its control+right+spare bracket and put a function header on top. So here’s all those things we just did. And now, rather than just grabbing the first x, we enumerate through all of them. So that’s the distance we had before. That’s the weight we had before. There’s the product we had before. And then finally some across the rows divide by the sum of the weights. So that’s going to calculate for i<code>s It's going to move. So it's actually changing Capital X, so it's changing the i</code>s thing and capital X so that it’s now the weighted sum. Oh, actually sorry, the weighted average of all of the other data weighted by how far it is away. So that’s going to do a single step. So the main shift update is extremely straightforward, which is clone the data, iterate a few times and do the update. So if we run it, take 600 milliseconds. And what I’ve done is I’ve plotted the centroid moved by two pixels or two one up two pixels, two units so that you can see them and so you can see the dots is where our data is. And they’re dots now because every single data point is on top of each other on a cluster. And so you can see they are now in the correct spots. So it is successfully clustered our data.</p>
-<div class="cell" data-outputid="0ec63e44-6ebc-42d2-cab2-19020bb34ab4" data-execution_count="30">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>weight</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="30">
+<div class="cell-output cell-output-display">
 <pre><code>tensor([    0.160,     0.047,     0.025,  ...,     0.000,     0.000,     0.000])</code></pre>
 </div>
 </div>
-<div class="cell" data-outputid="6b9dbd87-75d2-414d-8734-003c4302f02d" data-execution_count="31">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>weight[:,<span class="va">None</span>].shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="31">
+<div class="cell-output cell-output-display">
 <pre><code>torch.Size([1500, 1])</code></pre>
 </div>
 </div>
-<div class="cell" data-outputid="abffca88-c6a7-4a8a-f0d1-1d606ea897f7" data-execution_count="32">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>weight[:,<span class="va">None</span>]<span class="op">*</span>X</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="32">
+<div class="cell-output cell-output-display">
 <pre><code>tensor([[    4.182,     4.205],
         [    1.215,     1.429],
         [    0.749,     0.706],
@@ -480,7 +480,7 @@ gtag('config', 'G-6DEHC34SZW', { 'anonymize_ip': true});
         [    0.000,     0.000]])</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="33">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb48"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> one_update(X):</span>
 <span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, x <span class="kw">in</span> <span class="bu">enumerate</span>(X):</span>
 <span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>        dist <span class="op">=</span> torch.sqrt(((x<span class="op">-</span>X)<span class="op">**</span><span class="dv">2</span>).<span class="bu">sum</span>(<span class="dv">1</span>))</span>
@@ -488,20 +488,20 @@ gtag('config', 'G-6DEHC34SZW', { 'anonymize_ip': true});
 <span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>        weight <span class="op">=</span> tri(dist, <span class="dv">8</span>)</span>
 <span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>        X[i] <span class="op">=</span> (weight[:,<span class="va">None</span>]<span class="op">*</span>X).<span class="bu">sum</span>(<span class="dv">0</span>)<span class="op">/</span>weight.<span class="bu">sum</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="34">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb49"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> meanshift(data):</span>
 <span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> data.clone()</span>
 <span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> it <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">5</span>): one_update(X)</span>
 <span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> X</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-outputid="c3f734a1-282a-4114-83dd-ebc566ba46e6" data-execution_count="35">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb50"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>time X<span class="op">=</span>meanshift(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>CPU times: user 1.3 s, sys: 13.4 ms, total: 1.32 s
 Wall time: 1.44 s</code></pre>
 </div>
 </div>
-<div class="cell" data-outputid="f754867f-81e7-422a-d706-dd4f197e6cdd" data-execution_count="36">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb52"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>plot_data(centroids<span class="op">+</span><span class="dv">2</span>, X, n_samples)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <p><img src="index_files/figure-html/cell-37-output-1.png" class="img-fluid"></p>
@@ -513,24 +513,24 @@ Wall time: 1.44 s</code></pre>
 </section>
 <section id="animation" class="level2">
 <h2 class="anchored" data-anchor-id="animation">Animation</h2>
-<div class="cell" data-execution_count="37">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb53"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib.animation <span class="im">import</span> FuncAnimation</span>
 <span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> HTML</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="38">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb54"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> do_one(d):</span>
 <span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> d: one_update(X)</span>
 <span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>    ax.clear()</span>
 <span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>    plot_data(centroids<span class="op">+</span><span class="dv">2</span>, X, n_samples, ax<span class="op">=</span>ax)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-outputid="57264969-faa1-4492-f1d3-ce0ace89a615" data-execution_count="39">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb55"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create your own animation</span></span>
 <span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> data.clone()</span>
 <span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>fig,ax <span class="op">=</span> plt.subplots()</span>
 <span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>ani <span class="op">=</span> FuncAnimation(fig, do_one, frames<span class="op">=</span><span class="dv">5</span>, interval<span class="op">=</span><span class="dv">500</span>, repeat<span class="op">=</span><span class="va">False</span>)</span>
 <span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>plt.close()</span>
 <span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>HTML(ani.to_jshtml())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="39">
+<div class="cell-output cell-output-display">
 
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
 <script language="javascript">
@@ -1677,21 +1677,21 @@ SUVORK5CYII=\
 <section id="gpu-batched-algorithm" class="level2">
 <h2 class="anchored" data-anchor-id="gpu-batched-algorithm">GPU batched algorithm</h2>
 <p>To truly accelerate the algorithm, we need to be performing updates on a batch of points per iteration, instead of just one as we were doing.</p>
-<div class="cell" data-outputid="a221d0dc-9765-44e5-eacb-16c27a3fdf50" data-execution_count="40">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb56"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>bs<span class="op">=</span><span class="dv">5</span></span>
 <span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> data.clone()</span>
 <span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> X[:bs]</span>
 <span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>x.shape,X.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="40">
+<div class="cell-output cell-output-display">
 <pre><code>(torch.Size([5, 2]), torch.Size([1500, 2]))</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="41">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb58"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> dist_b(a,b): <span class="cf">return</span> (((a[<span class="va">None</span>]<span class="op">-</span>b[:,<span class="va">None</span>])<span class="op">**</span><span class="dv">2</span>).<span class="bu">sum</span>(<span class="dv">2</span>)).sqrt()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-outputid="2c35ba6e-2429-4432-b718-221b626ace5a" data-execution_count="42">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb59"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>dist_b(X, x)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="42">
+<div class="cell-output cell-output-display">
 <pre><code>tensor([[ 0.000,  3.899,  4.834,  ..., 17.628, 22.610, 21.617],
         [ 3.899,  0.000,  4.978,  ..., 21.499, 26.508, 25.500],
         [ 4.834,  4.978,  0.000,  ..., 19.373, 24.757, 23.396],
@@ -1699,22 +1699,22 @@ SUVORK5CYII=\
         [ 6.273,  5.547,  1.615,  ..., 20.775, 26.201, 24.785]])</code></pre>
 </div>
 </div>
-<div class="cell" data-outputid="49157a45-e6d7-49b5-f929-853d919cbb99" data-execution_count="43">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb61"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>dist_b(X, x).shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="43">
+<div class="cell-output cell-output-display">
 <pre><code>torch.Size([5, 1500])</code></pre>
 </div>
 </div>
-<div class="cell" data-outputid="5bc3c842-81b4-404a-b7aa-c2ebcd1988ee" data-execution_count="44">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb63"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>X[<span class="va">None</span>,:].shape, x[:,<span class="va">None</span>].shape, (X[<span class="va">None</span>,:]<span class="op">-</span>x[:,<span class="va">None</span>]).shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="44">
+<div class="cell-output cell-output-display">
 <pre><code>(torch.Size([1, 1500, 2]), torch.Size([5, 1, 2]), torch.Size([5, 1500, 2]))</code></pre>
 </div>
 </div>
-<div class="cell" data-outputid="b39c0a5d-ac55-45ce-a43e-dc118b24caf2" data-execution_count="45">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb65"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>weight <span class="op">=</span> gaussian(dist_b(X, x), <span class="dv">2</span>)</span>
 <span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>weight</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="45">
+<div class="cell-output cell-output-display">
 <pre><code>tensor([[    0.199,     0.030,     0.011,  ...,     0.000,     0.000,     0.000],
         [    0.030,     0.199,     0.009,  ...,     0.000,     0.000,     0.000],
         [    0.011,     0.009,     0.199,  ...,     0.000,     0.000,     0.000],
@@ -1722,29 +1722,29 @@ SUVORK5CYII=\
         [    0.001,     0.004,     0.144,  ...,     0.000,     0.000,     0.000]])</code></pre>
 </div>
 </div>
-<div class="cell" data-outputid="032bbb1a-dcad-4844-9652-fbb2fbe02856" data-execution_count="46">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb67"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>weight.shape,X.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="46">
+<div class="cell-output cell-output-display">
 <pre><code>(torch.Size([5, 1500]), torch.Size([1500, 2]))</code></pre>
 </div>
 </div>
-<div class="cell" data-outputid="8abfccd9-9bdd-46d4-bb6a-49991798eca4" data-execution_count="47">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb69"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>weight[...,<span class="va">None</span>].shape, X[<span class="va">None</span>].shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="47">
+<div class="cell-output cell-output-display">
 <pre><code>(torch.Size([5, 1500, 1]), torch.Size([1, 1500, 2]))</code></pre>
 </div>
 </div>
 <p>So this is going to add an access to the end. So this is going to turn this is going to turn weight dot shape from five comma 1500 to 5 comma 1500 from a one. And this is going to add an access to the start. Remember, it’s the same as X[None] = X[None,:,:]. And so let’s check our rules left, right to left. These are compatible because one of them is one. These are compatible because they’re both the same. And these are compatible because one of them is one. Okay? So it’s going to be copying each weight across to each of the X and Y, which is what we want. We want to we want to weight both of those components and it’s going to copy each of the 1500 points sorry, each of the point five times, because we do in fact want to wait every one of the five things now, mini batches, the separate set of weights for each of them. So that sounds perfect. So that’s how I think through these calculations. Okay. So we can now do that multiplication, which is going to give us something of five by 1500 by two, because we end up with the maximum of our ranks. And then we sum up over those 1500 points and that’s going to give us now five new data points. Now, something that you might notice here is that we’ve got a product and a sum</p>
-<div class="cell" data-outputid="3ae8139c-cede-497c-9347-c9e735871f5c" data-execution_count="48">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb71"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>num <span class="op">=</span> (weight[...,<span class="va">None</span>]<span class="op">*</span>X[<span class="va">None</span>]).<span class="bu">sum</span>(<span class="dv">1</span>)</span>
 <span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>num.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="48">
+<div class="cell-output cell-output-display">
 <pre><code>torch.Size([5, 2])</code></pre>
 </div>
 </div>
-<div class="cell" data-outputid="2306a7e9-e25c-4bae-8115-e0666f897337" data-execution_count="49">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb73"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>num</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="49">
+<div class="cell-output cell-output-display">
 <pre><code>tensor([[367.870, 386.231],
         [518.332, 588.680],
         [329.665, 330.782],
@@ -1753,9 +1753,9 @@ SUVORK5CYII=\
 </div>
 </div>
 <p>And when you say a product and a sum that tells you maybe we should use einsum. So in this case, we’ve got our weight, we’ve got five by 1500. So let’s call those i and j As for the five and 1500 we’ve got, the X is 1500 by two. Now we want to take the product of that and that so wanted to use the same name for this row. So he use j again. And then k is the number of rows, that’s the two. And then we want to end up with ik. So einsum, exactly the same result. That’s great. But you might recognize this. That’s exactly the einsum Something we had just before when we were doing matrix multiplication. Oh, that is a matrix multiplication. We’ve just re-invented matrix multiplication using this rather nifty. So we could also just use that. And so, you know, again, this is like what I was playing around with this morning as I started to look at this and I was thinking like, Oh, you know, can we simplify this? I don’t like this kind of like messing around of axes and summing over dimensions and whatnot. And so it’s nice to get things down to Einstein or better still, get down to matrix multipliers. It’s just clearer, you know, it’s stuff that we recognize because we use them all the time they all work performance would be pretty similar. I suspect. Okay, so now that we’ve got that, we then need to do our sum and we’ve got our five points. This is our five denominators. So we’ve got our numerator that we calculated up here for our weighted for our weighted average. The denominator is just the sum of the weights, remember.</p>
-<div class="cell" data-outputid="33991e6a-fbfe-458a-f594-6ab86b440bfa" data-execution_count="50">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb75"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>torch.einsum(<span class="st">'ij,jk-&gt;ik'</span>, weight, X)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="50">
+<div class="cell-output cell-output-display">
 <pre><code>tensor([[367.870, 386.231],
         [518.332, 588.680],
         [329.665, 330.782],
@@ -1763,9 +1763,9 @@ SUVORK5CYII=\
         [231.302, 234.155]])</code></pre>
 </div>
 </div>
-<div class="cell" data-outputid="324a3bb1-7c3b-4dad-d029-67e143402b25" data-execution_count="51">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb77"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a>weight<span class="op">@</span>X</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="51">
+<div class="cell-output cell-output-display">
 <pre><code>tensor([[367.870, 386.231],
         [518.332, 588.680],
         [329.665, 330.782],
@@ -1773,17 +1773,17 @@ SUVORK5CYII=\
         [231.302, 234.155]])</code></pre>
 </div>
 </div>
-<div class="cell" data-outputid="75789b47-108f-4543-f5f3-226b9b74e8f7" data-execution_count="52">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb79"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a>div <span class="op">=</span> weight.<span class="bu">sum</span>(<span class="dv">1</span>, keepdim<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb79-2"><a href="#cb79-2" aria-hidden="true" tabindex="-1"></a>div.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="52">
+<div class="cell-output cell-output-display">
 <pre><code>torch.Size([5, 1])</code></pre>
 </div>
 </div>
 <p>And so numerator, divided by denominator is our answer. So again, we’ve gone through every we’ve checked out all the dimensions all along the way. So nothing’s going to surprise us. Don’t try and write a function like this. Just bang from scratch. Right. You’re going to drive yourself crazy. Instead, do it step by step. So here’s our meanshift algorithm, clone the data, go through five iterations, and now go from 0 to n and batch size at a time. So Python has something called slices so we can create a slice of X starting at one up to i + batch size. Right. Unless it’s gone past, in which case use n.&nbsp;And so then we’re just copying and pasting each of the lines of code that we had before. Actually had us copy the cells and merge them. Of course I don’t actually copy and paste because it’s slow and boring and there’s my final step to create the new X[s]. And so notice here s is not a single thing. It’s a slice of things you might not have seen slice before, but this is just internally what Python’s doing when he is :, And it’s very convenient when you to use the same slice multiple times. Okay, so let’s do that using Cuda. I would run it first without cuda, but I mean, I’ve done all the steps before, so it should be fine so puppet on the GPU and run meanshift and let’s see how long that takes. It takes one millisecond and previously without GPU, it took 400 milliseconds. And you know, the other thing we should probably think about doing is looking at other batch sizes as well because now we’re looping over batches, right? So if we make the batch size bigger that for loop, it’s going to do less looping. So what if we make that 16? Will that be any faster?</p>
-<div class="cell" data-outputid="2d89d0ea-7b1d-4ed2-e8d5-9d5ef013243c" data-execution_count="53">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb81"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a>num<span class="op">/</span>div</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="53">
+<div class="cell-output cell-output-display">
 <pre><code>tensor([[26.376, 27.692],
         [26.101, 29.643],
         [28.892, 28.990],
@@ -1791,7 +1791,7 @@ SUVORK5CYII=\
         [29.323, 29.685]])</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="54">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb83"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> meanshift(data, bs<span class="op">=</span><span class="dv">500</span>):</span>
 <span id="cb83-2"><a href="#cb83-2" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="bu">len</span>(data)</span>
 <span id="cb83-3"><a href="#cb83-3" aria-hidden="true" tabindex="-1"></a>    X <span class="op">=</span> data.clone()</span>
@@ -1807,19 +1807,19 @@ SUVORK5CYII=\
 <p>Although each iteration still has to launch a new cuda kernel, there are now fewer iterations, and the acceleration from updating a batch of points more than makes up for it.</p>
 <p>Oh, I see. Thank you. People on YouTube pointing out that I’m passing batch size, so I actually need to put it here. All right. So if we used a batch size of five, I wonder is missing. Oh, look at that. I’ve totally made it slow now. And in 57 milliseconds. Haha. Okay. 64, All right. Finally, that makes much more sense. Okay, so the bigger, bigger is better. And I guess we could actually do all 5000 at once. Probably nice. All right. Thank you YouTube friends, for solving that bizarre mystery. Okay. All right. So that’s pretty great. I mean, you know, to say that we can you optimize a meanshift like actually google for this to see if it’s been done before. And it’s the kind of thing that people, like write papers about. So I think it’s great that we can do it so easily with PyTorch. And it’s the kind of thing that previously had been considered, you know, a very challenging academic problem to solve. So maybe you can do something similar with some of these. Now, I haven’t told you what these are. So part of the homework is to go read about them and learn about them. dbscan, funnily enough, actually is an algorithm that I accidentally invented and then discovered a year later had already been invented.</p>
 <p>LSH comes up all the time, so that’s great. And in fact I have a strong feeling and I’ve been thinking about this for a while, that something like LSH could be used to speed this whole thing up a lot. Because if you think about it and again, maybe already this already exists, I don’t know. But if you think about it, when we did that distance calculation, the vast majority of the the weights or nearly zero. And so it seems pointless to create that big you know kind of eventually 1500 by 1500 matrix. That’s like it’d be much better if we just found the ones that were like pretty close by and just took their average. And so you want an optimized nearest neighbors, basically. And so this is an example of something that can give you a, an, a kind of a fast nearest neighbors algorithm or, you know, there are things like. kd trees and trees and stuff like that. So if you want to, like have a bonus bonus, invent a new meanshift algorithm which picks only the closest points to avoid the quadratic time. All right. So not very often you get an assignment, which is to invent a new meanshift algorithm, I guess a super, super bonus. Super, super bonus. Publish a paper that describes it. All right. You definitely get four points. If you do that, we’ll give you a number of points equal to the impact factor of the journal. You get it published in. Okay. So what I want to do now is move on to calculus, which for some of us may not be our favorite topic. Yeah, that’s funny. I found out that I in some version here already, I didn’t notice. Okay. Or is ahead of his time. That guy. Let’s talk about calculus. If you’re not super comfortable with derivatives and what they are and why we care. called The Essence of Calculus, which I strongly recommend watching. It’s just a pleasure, actually, to watch, as is everything that is on 3blue1brown.</p>
-<div class="cell" data-execution_count="55">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb84"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> data.cuda()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="56">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb85"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> meanshift(data).cpu()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-outputid="b40c705d-8c84-4091-ff03-dd6846f050b8" data-execution_count="57">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb86"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>timeit <span class="op">-</span>n <span class="dv">5</span> _<span class="op">=</span>meanshift(data, <span class="dv">1250</span>).cpu()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>6.06 ms ± 746 µs per loop (mean ± std. dev. of 7 runs, 5 loops each)</code></pre>
 </div>
 </div>
-<div class="cell" data-outputid="1acfbdc7-af9f-4d51-82de-6e77aac7a0a2" data-execution_count="58">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb88"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a>plot_data(centroids<span class="op">+</span><span class="dv">2</span>, X, n_samples)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <p><img src="index_files/figure-html/cell-59-output-1.png" class="img-fluid"></p>

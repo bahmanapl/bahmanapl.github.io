@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.1.251">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Bahman Sadeghi">
+<meta name="dcterms.date" content="2023-03-23">
+
+<title>Bahman Sadeghi - Writing Stable Diffusion from Scratch 5</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-6DEHC34SZW"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-6DEHC34SZW', { 'anonymize_ip': true});
+</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Bahman Sadeghi</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html">Home</a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html">About Me</a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../index.xml"><i class="bi bi-rss" role="img">
+</i> 
+ </a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/bahmanapl"><i class="bi bi-github" role="img">
+</i> 
+ </a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/Bahman_Apl"><i class="bi bi-twitter" role="img">
+</i> 
+ </a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#the-forward-and-backward-passes" id="toc-the-forward-and-backward-passes" class="nav-link active" data-scroll-target="#the-forward-and-backward-passes">The forward and backward passes</a></li>
+  <li><a href="#foundations-version" id="toc-foundations-version" class="nav-link" data-scroll-target="#foundations-version">Foundations version</a>
+  <ul class="collapse">
+  <li><a href="#basic-architecture" id="toc-basic-architecture" class="nav-link" data-scroll-target="#basic-architecture">Basic architecture</a></li>
+  <li><a href="#loss-function-mse" id="toc-loss-function-mse" class="nav-link" data-scroll-target="#loss-function-mse">Loss function: MSE</a></li>
+  <li><a href="#gradients-and-backward-pass" id="toc-gradients-and-backward-pass" class="nav-link" data-scroll-target="#gradients-and-backward-pass">Gradients and backward pass</a></li>
+  </ul></li>
+  <li><a href="#refactor-model" id="toc-refactor-model" class="nav-link" data-scroll-target="#refactor-model">Refactor model</a>
+  <ul class="collapse">
+  <li><a href="#layers-as-classes" id="toc-layers-as-classes" class="nav-link" data-scroll-target="#layers-as-classes">Layers as classes</a></li>
+  <li><a href="#module.forward" id="toc-module.forward" class="nav-link" data-scroll-target="#module.forward">Module.forward()</a></li>
+  <li><a href="#autograd" id="toc-autograd" class="nav-link" data-scroll-target="#autograd">Autograd</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Writing Stable Diffusion from Scratch 5</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">fastaipart2</div>
+    <div class="quarto-category">Stable-Diffusion</div>
+  </div>
+  </div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Bahman Sadeghi </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 23, 2023</p>
+    </div>
+  </div>
+    
+  </div>
+  
+
+</header>
+
+<p>After This you should be comfortable with following : <br> 1- Chain Rule <br> 2- Basic linear NN architecture <br> 3- SGD concept <br> 4- Coding the model in python and pytorch <br></p>
+<p>So now we’re going to take a look at notebook number three in the normal repo course22p2, and we’re going to be looking at the forward and backward passes of a simple multi-layer perceptron, a neural network. The initial stuff up here is just importing things and just settings and stuff that they’re just copying and pasting some stuff from previous notebooks around paths and parameters and stuff like that. So we’ll skip over this now. So will often be kind of copying and pasting stuff from one notebook to another. That’s kind first cell get things set up and have also loading in our data for MNIST as tensors. Okay, so we to start with, need to create the basic architecture of our neural network. And I did mention at the start of the course that we will briefly review everything that we need to cover. So we should briefly review what basic neural networks are and why they are what they are. So to start with, let’s consider a linear model. Oops, that’s not how I do it,let’s take the most simple example possible, which is we’re going to pick a single pixel from from our MNIST pictures. And so that will be our x and for our, for our y values. Then we’ll have some lost function of how good is this model? Sorry, not some lost function that’s even simpler for our y value. We’re going to be looking at how likely is it that this is, say, the number three based on the value of this one pixel? So the pixel, its value will be x and the probability of being the number three we’ll call y and if we just have a linear model, then it’s going to look like this. And so in this case, it’s it’s saying that the brighter this pixel is, the more likely it is that it’s the number three. And so there’s a few problems with this. The first one, obviously, is that as a linear model, it’s very limiting because maybe, you know, we actually are trying to draw something that looks more like this. So how would you do that? Well, there’s actually a neat trick we can use to do that. What we could do is, well, let’s first of all, talk about something we can’t do, something we can’t do is to add a bunch of additional lines. So consider what happens if we say, okay, well, let’s add a few different lines.</p>
+<p>So let’s also add this line. So what would be the sum of our two lines? Well, the answer is, of course, that the sum of the two lines will itself be a line. So it’s not going to help us at all match the actual curve that we want. So here’s the trick. Instead, we could create a line like this that actually we could get this line. And now consider what happens if we add this original line with this new what’s not a line, right? It’s it’s two line segments. So what we would get is this everything to the left of this point is going to not be changed. If I add these two lines together, because this is zero all the way and everything to the right of it is going to be reduced. It looks like they’ve got similar slopes, so we might end up with instead. So this would all disappear here and instead we would end up with something like this. And then we could do that again, right? We could add an additional line that looks a bit like that. So it would go, but this time it could go even further out here and it could be something like this. Say, so what if we added that? Well, again, at the point underneath here, it’s always zero, so it won’t do anything at all. But after that it’s going to make it even more negatively sloped. And if you can see using this approach, we could add up lots of these rectified lines. These lines are truncated zero, and we could create any shape we want with enough of them. And these lines are very easy to create because actually all we need to do is to create just a regular line, just to get a regular line. Right. Which we can move up, down, left, right, change its angle, whatever, and then just say if it’s greater than zero, truncate it to zero, or we could do the opposite because through a line going the opposite direction, it has less than zero, we could say truncated to zero, and that would get rid of as we want. This whole section here and make it flat. Okay. So these are rectified lines and so we can sum up a bunch of these together to basically match any arbitrary curve.</p>
+<p>(Bahman note )This is amazing , the is intuition of a theory that we can create or mimic any funtion with neural net. Like creating anything fron linear model. (I do not remember the paper or the creator / he is very famous , he said something like this in his paper but did not try for more layers and years after that when people did that new era of AI started) . (Bahman note )</p>
+<p>So let’s start by doing that. Oh, the other thing we should mention, of course, is that we’re going to have not just one pixel, but we’re going to have lots of pixels. So to start with, the kind of most, you know, slightly, you know, the only slightly less simple approach, we could have something where we’ve got, you know, pixel number one and pixel number two, we’re looking at two different pixels to see how likely they are to be the number three. And so that would allow us to draw more complex shapes that have some kind of surface between them. Okay. And then we can do exactly the same thing is to create these surfaces.</p>
+<p>We can add up lots of these rectified lines together, but now they’re going to be kind of rectified planes, but it’s going to be exactly the same thing. We’re going to be adding together a bunch of lines, each one of which is truncated at zero. Okay. So that’s the quick review. And so to do that, we’ll start out by just defining a few variables. So n is the number of training examples. m Is the number of pixels. c is the number of possible values of our digits. And so here they are, (50000, 784, tensor(10)). Okay. So what we do is to is we basically decide ahead of time how many of these lines segment thing is to add up. And so the number that we create in a layer is called the number of hidden nodes or activations. So we call that nh, So let’s just arbitrarily decide on creating 50 of those. So in order to create lots of lines which where they’re going to truncate at zero, we can do a matrix multiplication. So with the matrix multiplication, we’re going to have something where we’ve got by 500000 rows by 784 column. Yeah, by 784 columns. And we’re going to multiply that by something with 784 rows and ten columns and why is that? Well, that’s because if we take this very first line of this first vector here, write one of 784 values there. The pixel values of the first image. Okay, So this is our first image. And so they’re each going to each of those 700 different values, but we multiply it by each of these 784 values and in the first column, the zero index column. And that’s going to give us a number in our output. So our output is going to be And so that result will multiply those together and add them up and that result is going to end up over here in this first. So and so each of these columns is going to eventually represent if this if this was a this is a linear model in this case, this is just the example of doing a linear model, each of these cells is going to represent the probability. So this first column will be the probability of being zero, and the second column will be the probability of one. The third column will be the probability of being a two and so forth. So that’s why we’re going to have these ten columns, each one allowing us to write the 784 inputs. Now of course, we’re going to do something bit more tricky than that, which is actually we’re going to have a 74 by 50 input going into a 784 by 50 output to create the 50 hidden layers. Then we’re going to truncate those at zero and then multiply that by a 50 by 10 to create an output. So we do it in two steps. So and the way it sgd works is we start with just this is our weight matrix here and this is our data, this is our outputs. The way it works is that this weight matrix is initially filled with random values. So called this contains our pixel values. This contains the results. So w is going to start with random values. So here’s our weight matrix. It’s going to have, as we discussed, 50,000 by 50 random values and it’s not enough just to multiply. We also have to add. So that’s what makes it a linear function. So we call those the biases, the things we add. We can just start those zeros, so we’ll need one for each output. So 50 of those and so that’ll be layer one. And then as we just mentioned, layer two will be a matrix that goes from 50 hidden. And now I’m going to do something totally cheating. To simplify some of the calculations for the calculus, I’m only going to create one output.</p>
+<section id="the-forward-and-backward-passes" class="level2">
+<h2 class="anchored" data-anchor-id="the-forward-and-backward-passes">The forward and backward passes</h2>
+<div class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pickle,gzip,math,os,time,shutil,torch,matplotlib <span class="im">as</span> mpl, numpy <span class="im">as</span> np</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> torch <span class="im">import</span> tensor</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> fastcore.test <span class="im">import</span> test_close</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>torch.manual_seed(<span class="dv">42</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>mpl.rcParams[<span class="st">'image.cmap'</span>] <span class="op">=</span> <span class="st">'gray'</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>torch.set_printoptions(precision<span class="op">=</span><span class="dv">2</span>, linewidth<span class="op">=</span><span class="dv">125</span>, sci_mode<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>np.set_printoptions(precision<span class="op">=</span><span class="dv">2</span>, linewidth<span class="op">=</span><span class="dv">125</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>MNIST_URL<span class="op">=</span><span class="st">'https://github.com/mnielsen/neural-networks-and-deep-learning/blob/master/data/mnist.pkl.gz?raw=true'</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>path_data <span class="op">=</span> Path(<span class="st">'data'</span>)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>path_data.mkdir(exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>path_gz <span class="op">=</span> path_data<span class="op">/</span><span class="st">'mnist.pkl.gz'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> urllib.request <span class="im">import</span> urlretrieve</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> path_gz.exists(): urlretrieve(MNIST_URL, path_gz)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="27219d5b-d56c-4eca-f032-a0ce00b2cad9" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>ls <span class="op">-</span>l data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>total 16656
+-rw-r--r-- 1 root root 17051982 Mar 27 04:43 mnist.pkl.gz</code></pre>
+</div>
+</div>
+<p>!ls -l data</p>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> gzip.<span class="bu">open</span>(path_gz, <span class="st">'rb'</span>) <span class="im">as</span> f: ((x_train, y_train), (x_valid, y_valid), _) <span class="op">=</span> pickle.load(f, encoding<span class="op">=</span><span class="st">'latin-1'</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>x_train, y_train, x_valid, y_valid <span class="op">=</span> <span class="bu">map</span>(tensor, [x_train, y_train, x_valid, y_valid])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="foundations-version" class="level2">
+<h2 class="anchored" data-anchor-id="foundations-version">Foundations version</h2>
+<section id="basic-architecture" class="level3">
+<h3 class="anchored" data-anchor-id="basic-architecture">Basic architecture</h3>
+<div class="cell" data-outputid="ffc4b848-27db-43e9-b070-2bbd17464156" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>n,m <span class="op">=</span> x_train.shape</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>c <span class="op">=</span> y_train.<span class="bu">max</span>()<span class="op">+</span><span class="dv">1</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>n,m,c</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<pre><code>(50000, 784, tensor(10))</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># num hidden</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>nh <span class="op">=</span> <span class="dv">50</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Well, I’m going to create one output. That’s because I’m not going to use cross entropy just yet. Instead, I’m going to use MSE. So actually I’m going to create one output, which will literally just be what do i think it is? from 0 to 10. And so then we’re going to compare those to the actual. So these will be our y predicted to only use a little hat for that and we’re going to compare that to our actuals. And yeah, in this very hacky approach, let’s say we predict over here the number nine and the actual is the number two and we’ll compare those together using MSE, which will be a stupid way to do it because it’s saying that nine is further away from being true than two, nine is farther away from true than it is from four in terms of how correct it is, which is which is not what we want at all. But this is what we’re going to do just to simplify our starting point. So that’s why we’re going to have a single output for this weight matrix in a single output for this bias. So linear, let’s create a function for putting extra linear layer with these weights in these biases. So it’s a matrix multiply and an add. All right. So we can now try it. So if we multiply we doing x_valid this time? So just to clarify x_valid is 10,000 by 784. So if we put x_valid through our weights and biases with a linear layer, we end up with a 10,000 by 50. So 10,050 long hidden activations, they’re not quite ready yet because we have to put them through relu. And so we’re going to clamp at zero, so anything under zero will become zero. And so here’s what it looks like when we go through the linear layer and then the relu here. And you can see he has a tensor with a bunch of things, some of which are zero, or they’re positive. And so that’s the result of this match, this matrix multiplication. Okay. So to create a basic MLP multi-layer perceptron from scratch, we will take our mini batch of X’s x, b is an x match. We will create our first layers output with a linear and then we will put that through over here and then that will go through the second linear. So the first one uses the w1, b1. Okay, these ones and the second one uses the w2 to b2. And so we’ve now got a simple model and as we hoped, when we pass in the validation set, we get back 10000 digits. So that’s a good start. Okay, so let’s use our ridiculous lost function of MSE. So our results is 10,000 by one and our y_valid is just a vector. Now what’s going to happen if I do res minus y-valid?</p>
+<div class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>w1 <span class="op">=</span> torch.randn(m,nh)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>b1 <span class="op">=</span> torch.zeros(nh)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>w2 <span class="op">=</span> torch.randn(nh,<span class="dv">1</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>b2 <span class="op">=</span> torch.zeros(<span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> lin(x, w, b): <span class="cf">return</span> x<span class="op">@</span>w <span class="op">+</span> b</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="33a09a02-0042-4347-ee6f-9e3e6145eb76" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>t <span class="op">=</span> lin(x_valid, w1, b1)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>t.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<pre><code>torch.Size([10000, 50])</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> relu(x): <span class="cf">return</span> x.clamp_min(<span class="fl">0.</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="fd44eff3-f4cf-4e95-b07c-fe2d954372b0" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>t <span class="op">=</span> relu(t)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>t</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="11">
+<pre><code>tensor([[ 0.00, 11.87,  0.00,  ...,  5.48,  2.14, 15.30],
+        [ 5.38, 10.21,  0.00,  ...,  0.88,  0.08, 20.23],
+        [ 3.31,  0.12,  3.10,  ..., 16.89,  0.00, 24.74],
+        ...,
+        [ 4.01, 10.35,  0.00,  ...,  0.23,  0.00, 18.28],
+        [10.62,  0.00, 10.72,  ...,  0.00,  0.00, 18.23],
+        [ 2.84,  0.00,  1.43,  ...,  0.00,  5.75,  2.12]])</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> model(xb):</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    l1 <span class="op">=</span> lin(xb, w1, b1)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    l2 <span class="op">=</span> relu(l1)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> lin(l2, w2, b2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="bfecebe5-25e1-4f2f-a459-ac60dfb7c461" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>res <span class="op">=</span> model(x_valid)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>res.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="13">
+<pre><code>torch.Size([10000, 1])</code></pre>
+</div>
+</div>
+</section>
+<section id="loss-function-mse" class="level3">
+<h3 class="anchored" data-anchor-id="loss-function-mse">Loss function: MSE</h3>
+<p>So before you continue in the video, have a think about that. What’s going to happen if I do res minus y_valid by thinking about the numpy broadcasting rules we’ve lent? Okay, let’s try it. Oh terrible. We’ve ended up with a 10,000 by 10,000 matrix. So 100 million points now we would expect an MSA to contain a thousand points. Why does that happen? The reason it happened is because we have to start out at the last dimension and go right to left and we compare to the 10,000 to the one and say, are they compatible? And the answer is, that’s right. Alexi And the chats got it right, broadcasting roles. So the answer is that this one will be broadcast over these 10,000. So this pair here will give us the next one and we’ll also move here to the next one. Oh, there is no next one. What happens now? If you remember the rules in search, say, unit access for us. So I now have 10,000 by one. So that means each of the 10,000 outputs from here is will end up being broadcast across the 10,000 rows here. So that means that will end up for each of those 10,000. We’ll have another 10,000. So we’ll end up with a 10,000 by 10,000 output. So that’s not what we want. So how could we fix that? Well, what we really would want, would we want this to be If that was 10,000 comma one, then we’d compare these two right to left and they’re both one. So those those match and there’s nothing to broadcast because they’re the same. And then we’ll go to the next one, 10000 to 10000 those match. So that just go element wise for those and we’d end up with exactly what we want it to hand out with 10,000 results. Or alternatively we could remove this dimension and then again, same thing we’re going to add right to left compatible 10,000. So they will get element wise operation. So in this case I got rid of the trailing comma one. It’s a couple of ways you could do that. One is just to say, okay, grep every row and the zeroth column of res and that’s going to turn it from a 10,000 by one into a 10,000.</p>
+<p>Or alternatively we can say dot squeeze. Now dot squeeze removes all trailing unit vectors and possibly also prefix unit vectors. I can’t quite recall. I guess we should try. So let’s say res None comma calling, comma None, q.shape. Okay. So if I go q.squeeze. shape. Okay. So all the unit vectors get removed. Sorry, all the unit dimensions get removed I should say. Okay. So now that we’ve got a way to remove that axis that we didn’t want, we can use it. And if we do that subtraction now we get 10,000 just like we wanted it. So now let’s get our training and validation wise, we’ll turn them into floats because we’re using MSI. So let’s calculate our predictions for the training set, which is 50,000 by one. And so if we create an MSE function that just does what we just said we wanted, so it does a subtraction and then squares it and then takes the mean that the MSE. So there we go. We now have a loss function being applied to our training set. Okay, now we need gradients. So as we briefly discussed last time, gradients slopes and in fact maybe it would even be easier to look at last time. So this is last times notebook. And so we saw how the gradient at this point is the slope here and so it’s the as we discussed rise over run now so that means as we increase in this case time by one the distance increases by how much that’s what the slope is. So why is this interesting? The reason it’s interesting is because let’s consider our neural network. Our neural network is some function that takes two things two groups of things. It contains a matrix of our inputs, and it contains our weight matrix. And we want to and let’s assume we’re also putting it through a loss function. So let’s say, well, I guess we can be explicit about that. So we could say we then take the result of that and we put it through some lost function.</p>
+<p>So these are the predictions and we compare it to our actual dependent variable. So that’s our neural net and that’s our last function. Okay. So if we can get the derivative of the loss with respect to, let’s say, one particular weight, so let’s say weight, and I’m like number zero, what is that doing? Well, it’s saying as I increase, increase the weight by a little bit, what happens to the loss? And if it says, oh, well, that would make the loss go down, then obviously I want to increase the weight by a little bit. And if it says, Oh, it makes the loss go up, then obviously I want to do the opposite. So that derivative of the loss with respect to the weights each one of those tells us how to change the weights. And so to remind you, we then change each weight by that derivative times a little bit and subtract it from the original weights. And we do that a bunch of times, and that’s called SGD. Now, there’s something interesting going on here, which is that in this case there’s a single input and a single output, and so the derivative is a single number at any point. It’s the speed. In this case, the vehicle is going. But consider a more complex function like, say, this one. Now, in this case, there’s one output, but there’s two inputs. And so if we want to take the derivative of this function, then we actually need to say, well, what happens if we increase x by a little bit? And also what happens if we increase y by a little bit? And in each case what happens to x? And so in that case, the derivative is actually going to contain two numbers, right? It’s going to contain the derivative of x with respect to y and it’s going to contain the derivative of z with respect to x. What happens if we change each of these two numbers? So, for example, these could be, as we discussed, two different weights in our neural network and Z could be our loss. For example, now we’ve got actually 784 inputs, right? So we would actually have 784 of these. So we don’t normally write them all like that. We would just say, yes, this little squiggly symbol to say the derivative of the loss across all of them with respect to all of the weights. Okay. And that’s just saying that there’s a whole bunch of them. It’s a shorthand way of writing this. Okay. So it gets more complicated still, though, because think about what happens if, for example, you were in the first layer where we’ve got a weight matrix that’s going to end up giving us 50 outputs, right? So for every image, we’re going to have 784 inputs to our function and we’re going to have 50 outputs to our function.</p>
+<p>And so in that case, I can’t even draw it right because like for every even if I had two inputs and outputs, then as I increase my first input, I’d actually need to say, how does that change both of the two outputs? And as I change my second input, how does that change both of my two outputs? So for the full thing, you’re actually going to end up with a matrix of derivatives. It basically says for every input that you change by a little bit, how much does it change every output of that function? So you’re going to end up with a matrix. So that’s what we’re going to be doing, is we’re going to be calculating these derivatives, but rather than being single numbers, they’re going to actually contain matrices with a row for every input and a column for every output and a single cell in that matrix. Well, tell us, as I change this input by a little bit, how does it change this output Now? Eventually we will end up with a single number for every input, and that’s because our loss in the end is going to be a single number. And this is like a a requirement that you’ll find when you try to use SGD is that your loss has to be a single number. And so we generally get it by either doing the the sum or a mean or something like that. But as you’ll see on the way there, we’re going to have to be dealing with these matrix of derivatives. So I just want to mention, as I might have said before, I can’t even remember there is this paper that Terence Power and I wrote a while ago, which goes through all this, and it basically assumes that you only know high school calculus. And if you don’t checkout Khan Academy, but then it describes matrix calculus in those terms. So it’s going to explain to you. Exactly. And it works through lots and lots of examples. So, for example, as it mentions here, when you have this matrix of derivatives, we call that a Jacobean matrix. So like there’s all these like words, it doesn’t matter too much if you know them or not, but it’s convenient to be able to talk about, you know, the matrix of all of the derivatives. If somebody just says this Jacobean, it’s a little convenient. It’s a bit, a little bit easier than saying the matrix of all of the derivatives where all of the rows are things that are, are all the inputs and all the columns of the outputs. So yeah, if you want to really understand, get to a point where papers are easier to read particular, it’s quite useful to know this notation and, and, and definitions of words. https://explained.ai/matrix-calculus/</p>
+<p>You can certainly get away without it. It’s just something to consider. Okay, so we need to be able to calculate derivatives at least of a single variable. And I am not going to worry too much about that because that is something you do in high school math and b, because your computer can do it for you and so you can do it symbolically using something called sympy, which is really great. So if you create two symbols called x and y, you can say please differentiate x squared with respect to x. And if you do that sympy will tell you the answer is 2x. If you say differentiate three x squared plus nine with respect to x, sympy will tell you that six x and a lot of you probably will have used Wolfram Alpha that does something very similar. I kind of quite like this because I can quickly do it inside my notebook and included in my prose. So I think sympy is pretty cool. So you know, basically yeah. That if you, you know, you can quickly calculate derivatives on a computer. Having said that, I do want to talk about why the derivative of three x squared plus nine equals six x, because that’s going to be very important. So three x squared plus nine. So we’re going to start with the the information that that derivative of a to the b with respect to a equals b<em>a , So for example, the derivative of x squared with respect to x equals 2x. So that’s just something I’m hoping you remember from high school or refresh your memory is in Khan Academy also. So there that is there. So what we could now do is we could rewrite this derivative as 3u plus nine and then we’ll write u equals x squared. Okay, Now this is getting easier. The derivative of two things being added together is simply the sum of the derivatives. Oh, I forgot. B minus one of the exponent. Thank you. So B eight the power of b minus one. That’s what it should be, which would be two x to the power of one and the one is not needed. Thank you for fixing that. All right. So we just some of them up so we get the derivative of 3u is actually just well, it’s going to be the derivative of that plus the derivative of that. Now the derivative of any constant with respect to a variable is zero. Because if I change something an input, it doesn’t change the constant, it’s always nine. So that’s going to end up as zero. And so we’re going to end up with the dy/du equals something plus zero. And the derivative of 3u with respect to u is just three, because it’s just a line that’s its slope. Okay, But that’s not dy/dx Well, the cool thing is that dy/dx is actually just equal to dy/du </em> du/dx. So I’ll explain why in a moment. But for now then let’s recognize we’ve got du/dx = 2x, we know that one 2x so we can now multiply these two bits together and we will end up with two X times three, which is six x, which is what sympy they told us. So fantastic. Okay, this is something we need to know really well, and it’s called the chain rule and it’s best to understand it intuitively.</p>
+<p>So to understand it intuitively, we’re going to take a look at an interactive animation. So I found this nice interactive animation on this page here https://webspace.ship.edu/msrenault/geogebracalculus/derivative_intuitive_chain_rule.html</p>
+<p>And the idea here that we’ve got a wheel spinning around and each time it spins round, this is x going up. Okay. So at the moment there’s some change in x,dx over a period of time. All right. Now this wheel is eight times bigger than this wheel. So each time this goes round, once, if we connect the two together, this wheel would be going round four times faster because the difference between the multiple between eight and two is four. Maybe I’ll bring this up to here. So now that the this wheel is has got twice as big a circumference as the other wheel, each time this goes around, once this is going around two times. So the change in u each time X goes round, once the change in u will be two. So that’s what du/dx is saying. The change in u for each change in x is two. Now we could make this interesting by connecting this wheel to this well. Now this wheel is twice as small as this wheel. So now we can see that again. Each time this spins round, once this spins round twice because this has twice the circumference of this. So therefore dy/du equals two. But now that means every time this goes round, once this goes round twice every time this one goes round, once this one goes round twice. So therefore every time this one goes round once this one goes round four times So to dy/dx equals four. So you can see here how the two well how the, du/dx has to be multiplied with the dy/du to you to get the total. So this is what’s going on in the chain role and this is what you want to be thinking about is this idea that you’ve got one function that is kind of this intermediary. And so you have to multiply the two impacts to get the impact of the X. Wheel, on the y Wheel, we’ll help you find that useful. I find this personally, I find this intuition quite useful. So why do we care about this? Well, the reason we care about this is because we want to calculate the gradient of our MSE applied to our model. And so our inputs are going through a linear, they’re going through a relu here, they’re going through another linear, and then they’re going through an MSE. So there’s four different steps going on. And so we’re going to have to combine those all together. And so we can do that with a chain rule. So if our steps are that lost function is the so we’ve got the lsot function, which is some function of the predictions and the actuals. And then we’ve got we’ve got the second layer is a function of actually let’s say let’s call this the output of the second layer slightly. We have notation, but hopefully it’s not too bad. It’s going to be a function of the relu of the activations and relu activation are a function of the first layer and the first layer is a function of the inputs. Oh, and of course this also has weights and biases. So we’re basically going to have to calculate the derivative of that. Okay. But then remember that this is itself a function. So then we need to multiply that derivative by the derivative of that, but that’s also a function. So we have to multiply that derivative by this, but that’s also a function. So we have to multiply that derivative by this. So that’s going to be our approach. We’re going to start at the end, we’re going to take its derivative and then we’re going to gradually keep multiplying as we go each step through. And this is called back propagation. So back propagation sounds pretty fancy, but it’s actually just using the chain rule. Gosh, I didn’t spell that very well.it’s just using the chain rule. And as you’ll see, it’s also just taking advantage of a computational trick of memorizing some things on the way. And in our chat, Stephen made a very good point about understanding nonlinear functions in this case, which is just a consider that the wheels could be growing and shrinking all the time as they’re moving, but you’re still going to have the same compound effect, which I really like that. Thank you, Sylvar There’s also a question in the chat about why is this column comma zero being placed in the function given that we can do it outside the function? Well, the point is we want an MSE function that will apply to any output, not that we’re not using it once we want it to work any time. So we haven’t actually modified preds or anything like that or y_train. So we want this to be able apply to anything without us having to like preprocessor. It is basically the idea here. Okay, so let’s take a look at the basic idea. So he is going to do a forward pass in a backward pass. So the forward passes where we calculate the loss.</p>
+<p>So the loss is, oh, I’ve got an error here that should be diff. Yeah, we go. So the loss is going to be the output of our neural net minus our target squared. Then take the mean, Okay. And then our output is going to be the output of the second linear layer. The second linear layer’s input will be the relu, the relu input will be the first layer.</p>
+<p>It’s going to take our input, put it through a linear layer, put that through a relu, put that through a linear layer and calculate the MSE. Okay, That bit hopefully is pretty straightforward. So</p>
+<p>what about the backward pass? So the backward pass, what I’m going to do and you’ll see why in a moment is I’m going to store the gradients of each layer. So for example, the gradients of the loss with respect to its inputs in the layer itself. So I’m going to create a new attribute, I could call it anything I like, and it’s going to call it (.g) .So I’ve got to create, a new attribute called out.g, which is going to contain the gradients. You don’t have to do it this way, but as you’ll see, it turns out pretty convenient. So that’s just going to be two times the difference because we’ve got different squared, right? So that’s just the derivative. And then we have taken the mean here. So we have to do the same thing here divided by the input shape. And so that’s, that’s those gradients, that’s good. And now what we need to do is multiply by the gradients of the previous layer. So what are the gradients of a linear layer? I’ve created a function for that here. So the gradient is a linear layer. We’re going to need to know the weights of the layer. We’re going to need to know the biases of the layer. And then we’re also going to know the input to the linear layer, because that’s the thing that’s actually being manipulated in here. And then we also going to need the output because we have to multiply by the gradients because we’ve got the chain role. So again, we’re going to store the gradients of our input like inp.g . So this would be the gradients of our output with respect to the input (inp.g), and that’s simply the weights because the weights. (w.t). So a matrix multiplier is just a whole bunch of linear functions. So each one slope is just its weight, but you have to multiply it by the gradient of the outputs because of the chain role and then the gradient of the outputs. With respect to the weights (w.g) is going to be the input times the output summed up. I’ll talk more about that in a moment. The derivatives of the bias is very straightforward. It’s the gradients of the output added together because the bias is just a constant value. So for the chain role, we simply just use output times one, which is output. So for this one here again, we have to do the same thing we’ve been doing before, which is multiply by the output gradients because of the chain rule and then we’ve got the input weights. So every single one of those has to be multiplied by the outputs. And so that’s why we have to do an unsqueese minus one. So what I’m going to do now is I’m going to show you how I would experiment with this code in order to understand it, and I would encourage you to do the same thing. It’s a little harder to do this one cell by cell because we kind of want to put it all into this function like this. So we need a way to explore the calculations interactively and the way we do that is by using the Python debugger.</p>
+<p>Here is how you let me see a few ways to do this. Here’s one way to use the Python debugger. The Python debugger is called PDB. So if you say PDB dot set trace in your code, then that tells the debugger to stop execution. When it reaches this line, it sets a breakpoint. So if I call forward and backward, you can see here it stopped and the interactive Python debugger I PDB has popped up with an arrow pointing at the line of code. It’s about to run. And at this point there’s a whole range of things we can do to find out what they are. We page for help understanding how to use the Python debugger. It’s one of the most powerful things I think you can do to improve your coding. So one of the most useful things you can do is to print something. You see all these single letter things. They’re just shortcuts. But in a debugger you want to be able to do things quickly instead of typing print, just type p.&nbsp;So for example, let’s take a look at the shape of the input. So I type p for print input shape. So I’ve got a 50,000 by 50 input to the last layer that makes sense. These are the hidden activations coming in to the last layer for every one of our images. What about the output gradients? And there’s that as well. And actually a little trick you can ignore that you don’t have to use the p at all if your variable name is not the same as any of these commands. So I could have just typed out.g.shape, get the same thing. Okay. So you can also put in expressions so let’s have a look at the shape of this. So the output of this is let’s see if it makes sense. We’ve got the input 50,000 by 50. We put a new axis on the end unsqueeze minus one is the same as doing dot is indexing it with dot dot dot comma None sets but a new axis at the end. So that would have become And then the out.g.unsqueeze. We’re putting in the first dimension, so we’re going to have 50,000 by 50 by one times 50,000 by one by one. And so we’re going to end we’re going to end up getting this broadcasting happening over these last two dimensions, which is why we end up with 50,000 by 50 by one. And then with summing up, this makes sense, right? We want to sum up over all of the inputs, each image is individually contributing to the derivative. And so we want to add them all up to find their total impact. Because remember the sum of a bunch of the derivative of the sum of functions is the sum of the derivatives of the functions. So we can just some of them up. Now, this is one of these situations where if you see a times and a sum and unsqueeze, it’s not a bad idea to think about Einstein summation notation. Maybe there’s a way to simplify this. So first of all, let’s just see how we can do some more stuff in the debugger. I’m going to continue so just continue running.</p>
+<p>So press c for continue and it keeps running until it comes back again to the same spot. And the reason we’ve come to the same spot twice is because Lin_grad is called two times. So we would expect that the second time we’re going to get a different bunch of inputs and outputs. And so I can print out a couple of the inputs and output gradient. So now, yes, So this is the first layer going into the second layer. So that’s exactly what we expect to find out What called this function, you just type w is where am I? And so you can see here, where am I? Oh, forward and backward was called. See the arrow that called lin_grad the second time and now we’re here in w.g equals. If we want to find out what actually ends up being equal to. I can press n for to say go to the next line and so now we’ve moved from line 5 to line 6, the instruction point is now looking at line six. So I could now print out, for example, w.g.shape, and that’s the shape our weights. One person on the chat has pointed out that you can use breakpoint instead of this import PDB business. Unfortunately, the breakpoint keyword doesn’t currently work in Jupyter or in IPython, so we actually can’t. Sadly. That’s why I’m doing it the old fashioned way. So this way maybe they’ll fix the bug at some point. But for now we have to type all this. Okay, so those are a few things to know about, but I would definitely suggest looking up a Python PDB tutorial to become very familiar with this incredibly powerful tool because it really is so very handy. So if I just press continue again, it keeps running all the way to the end and it’s now finished running forward and backward. https://realpython.com/python-debugging-pdb/</p>
+<p>(Of course, <code>mse</code> is not a suitable loss function for multi-class classification; we’ll use a better loss function soon. We’ll use <code>mse</code> for now to keep things simple.)</p>
+<div class="cell" data-outputid="16e6e3ef-16ab-4138-ef65-36d2e0f331c1" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>res.shape,y_valid.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="14">
+<pre><code>(torch.Size([10000, 1]), torch.Size([10000]))</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="c0f601a1-848c-460b-a575-1fde598ec791" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>(res<span class="op">-</span>y_valid).shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="15">
+<pre><code>torch.Size([10000, 10000])</code></pre>
+</div>
+</div>
+<p>We need to get rid of that trailing (,1), in order to use <code>mse</code>.</p>
+<div class="cell" data-outputid="e75a2bde-e949-4da2-b6e9-a1bbb2231d90" data-execution_count="16">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>res[:,<span class="dv">0</span>].shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="16">
+<pre><code>torch.Size([10000])</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="58019077-191b-4121-f22f-32f0baa6c5dc" data-execution_count="17">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>res.squeeze().shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="17">
+<pre><code>torch.Size([10000])</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="8035d5d8-d648-4b33-de86-715269e397dc" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>(res[:,<span class="dv">0</span>]<span class="op">-</span>y_valid).shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="18">
+<pre><code>torch.Size([10000])</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="5989d8b4-ac0b-49f4-d26c-0c20c7b8c6c0" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>y_train,y_valid <span class="op">=</span> y_train.<span class="bu">float</span>(),y_valid.<span class="bu">float</span>()</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>preds <span class="op">=</span> model(x_train)</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>preds.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="19">
+<pre><code>torch.Size([50000, 1])</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> mse(output, targ): <span class="cf">return</span> (output[:,<span class="dv">0</span>]<span class="op">-</span>targ).<span class="bu">pow</span>(<span class="dv">2</span>).mean()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="5a738bfd-7c5b-459f-9499-e5cc28df92d5" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>mse(preds, y_train)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="21">
+<pre><code>tensor(4308.76)</code></pre>
+</div>
+</div>
+</section>
+<section id="gradients-and-backward-pass" class="level3">
+<h3 class="anchored" data-anchor-id="gradients-and-backward-pass">Gradients and backward pass</h3>
+<div class="cell" data-outputid="7fa3bcee-7633-470b-aa8f-694402c70bec" data-execution_count="22">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sympy <span class="im">import</span> symbols,diff</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>x,y <span class="op">=</span> symbols(<span class="st">'x y'</span>)</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>diff(x<span class="op">**</span><span class="dv">2</span>, x)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="22">
+<pre><code>2*x</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="aebb072f-4916-46b9-ebd8-f100ea65b2ea" data-execution_count="23">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>diff(<span class="dv">3</span><span class="op">*</span>x<span class="op">**</span><span class="dv">2</span><span class="op">+</span><span class="dv">9</span>, x)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="23">
+<pre><code>6*x</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="24">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> lin_grad(inp, out, w, b):</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># grad of matmul with respect to input</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>    inp.g <span class="op">=</span> out.g <span class="op">@</span> w.t()</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>    w.g <span class="op">=</span> (inp.unsqueeze(<span class="op">-</span><span class="dv">1</span>) <span class="op">*</span> out.g.unsqueeze(<span class="dv">1</span>)).<span class="bu">sum</span>(<span class="dv">0</span>)</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>    b.g <span class="op">=</span> out.g.<span class="bu">sum</span>(<span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="25">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> forward_and_backward(inp, targ):</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># forward pass:</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>    l1 <span class="op">=</span> lin(inp, w1, b1)</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>    l2 <span class="op">=</span> relu(l1)</span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>    out <span class="op">=</span> lin(l2, w2, b2)</span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>    diff <span class="op">=</span> out[:,<span class="dv">0</span>]<span class="op">-</span>targ</span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>    loss <span class="op">=</span> diff.<span class="bu">pow</span>(<span class="dv">2</span>).mean()</span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># backward pass:</span></span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>    out.g <span class="op">=</span> <span class="fl">2.</span><span class="op">*</span>diff[:,<span class="va">None</span>] <span class="op">/</span> inp.shape[<span class="dv">0</span>]</span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>    lin_grad(l2, out, w2, b2)</span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a>    l1.g <span class="op">=</span> (l1<span class="op">&gt;</span><span class="dv">0</span>).<span class="bu">float</span>() <span class="op">*</span> l2.g</span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a>    lin_grad(inp, l1, w1, b1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>So when it’s finished, we would find that there will now be, for example, w1.g, because this is this is the gradients that it just calculated and there would also be a x_train.g and so forth. Okay, so let’s see if we can simplify this a little bit. So I would be inclined to take these out and give them their own variable names just to make life a bit easier. It would have been better if I’d actually done this before the debugging, so it be a bit easier to type. So let’s set i and o equal to input and output .g.unsqueeze. And actually let’s get rid of the that we just call it. So i will be input. All right. So we’ve got here actually now let’s put the end sequences back. I changed my mind. So. So just by. Oh, okay. So we’ll get rid of our breakpoint and double check that we’ve got our gradients. Okay. And I guess before we re run out, we should probably set those to zero. So what I would do here to try things out is I put my breakpoint there and then I would try things. So let’s go next. And so I realize here that what we’re actually doing is we’re basically doing exactly the same thing as einsum. Some would say. So I could test that out by trying an einsum. Right. Because I’ve just got this is being replicated. And then I’m summing over that dimension because that’s the multiplication that I’m doing. So I’m basically multiplying the first dimension of and then summing over that dimension. So I could try running that and oh, it works. So that’s interesting. I’d be easier if I just read this shaped bit long, isn’t it, dot shape. Okay, so it’s a 50 by one. Oh, and I’ve got zeros because I did exchange that zero. That was silly. Let’s try that again. That should be done. Gradient.zero. Okay, so let’s try doing an einsum. And there we go. That seems to be working. That’s pretty cool. So we’re we’ve multiply at this repeating index. So we were just multiplying the first dimensions together and then summing over them. So there’s no i here. Now, that’s not quite the same thing as a matrix multiplication, but we could turn it into the same thing as more metaphor application just by swapping in i,and j so that the other way around that way would have j, i comma , i k we can swap into dimensions very easily. That’s what’s called the transpose. So that would become a matrix multiplication if we just use the transpose. And in numpy the transpose is the capital T attribute. So here is exactly the same thing. Using a matrix multiply and a transpose. And let’s check. Yeah, that’s the same thing as well. Okay, cool. So that tells us that now we’ve checked in our debugger that we can actually replace all this with a matrix. Multiply. We don’t need that anymore. Let’s see if it works. That does. All right. x_trained.g. Okay. So hopefully that’s convinced you that the debugger is a really handy thing for playing around with numeric programing ideas or coding in general. And so I think now is a good time to take a break. So let’s take a eight minute break and I’ll see you back here after a seven minute break. I’ll see you back here in. 7 minutes. Thank you.</p>
+<p>All right. I’m back. What have I missed? Hmm? Okay. Welcome back. So we’ve calculated our derivatives, and we want to test them. Luckily, PyTorch already has derivatives implemented, so I’ve got a totally cheat. And. And is PyTorch to calculate the same derivatives. So don’t worry about how this works yet, because I’m actually going to be doing all this from scratch anyway. For now, I’m just going to run it all through PyTorch and check that that derivatives are the same as ours. And they are. So we’re on the right track. Okay. So this is all pretty clunky. I think we can all agree and obviously it’s clunkier than what we do in PyTorch.</p>
+<div class="cell" data-execution_count="26">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>forward_and_backward(x_train, y_train)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="27">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Save for testing against later</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_grad(x): <span class="cf">return</span> x.g.clone()</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>chks <span class="op">=</span> w1,w2,b1,b2,x_train</span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>grads <span class="op">=</span> w1g,w2g,b1g,b2g,ig <span class="op">=</span> <span class="bu">tuple</span>(<span class="bu">map</span>(get_grad, chks))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We cheat a little bit and use PyTorch autograd to check our results.</p>
+<div class="cell" data-execution_count="28">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> mkgrad(x): <span class="cf">return</span> x.clone().requires_grad_(<span class="va">True</span>)</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>ptgrads <span class="op">=</span> w12,w22,b12,b22,xt2 <span class="op">=</span> <span class="bu">tuple</span>(<span class="bu">map</span>(mkgrad, chks))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="29">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> forward(inp, targ):</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>    l1 <span class="op">=</span> lin(inp, w12, b12)</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>    l2 <span class="op">=</span> relu(l1)</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>    out <span class="op">=</span> lin(l2, w22, b22)</span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mse(out, targ)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="30">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>loss <span class="op">=</span> forward(xt2, y_train)</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>loss.backward()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="31">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> a,b <span class="kw">in</span> <span class="bu">zip</span>(grads, ptgrads): test_close(a, b.grad, eps<span class="op">=</span><span class="fl">0.01</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>So how do we simplify things? That’s a really cool refactoring that we can do. So what we’re going to do is we’re going to create a whole class for each of our functions, for the regular function and for the linear function. So the the way that we’re going to do this is we’re going to create a dunder call. What is dunder call do let me show you. So if I create a class and we’re just going to set that to print, hello. So if I create an instance of that class and then I call it as if it was a function oops, missing the dunder bit here, call it as if it’s a function. It says hi. So in other words, you know, everything can be changed in Python. You can change how a class behaves, you can make it look like a function. And to do that you simply define dunder call your passing it an argument like so. Okay, so that’s what dunder call does. It just says it’s just a little bit of syntax, sugary kind of stuff to say. I want to be able to treat it as if it’s a function without any method at all. You can still do it the method way you could have done this. I don’t know why you’d want to, but you can. But because it’s got this special magic named dunder call, you don’t have to write that time to dunder call at all. So here, if we create an instance of the earlier class, we can treat it as a function. And what it’s going to do is it’s going to take its input and do the relu on it. But if you look back at the forward and backward, there’s something very interesting about the backward pass, which is that it has to know about, for example, this intermediate gets passed over here, this intermediate calculation gets passed over here because of the chain role. We’re going to need some of the intermediate calculations and not just because the chain rule, but because of actually how the derivatives are calculated. So we need to actually store each of the layer intermediate calculations.</p>
+<p>And so that’s why value doesn’t just calculate and return the output, but it’s also stores its output and it also stores its input. So that way then when we call backward, we know how to calculate that we set the inputs gradient because remember we stored the input. So we can do that right and it’s going to just be oh input greater than zero dot float. Right? So that’s the definition. Okay. Of the derivative of a relu and then chain rule. So that’s how we can calculate the forward pass and the backward pass for relu. And we’re not going to have to then store all this intermediate stuff separately. It’s going to happen automatically so we can do the same thing for a linear layer. Now linear layer needs some additional state weights and biases. relu doesn’t, right? So there’s no in it. So when you create a linear layer, we have to say what are its weights, what are its biases? We store them away. And then when we call it when the forward pass, just like before we store the input. So that’s exactly the same line here. And just like before we calculate the output and store it and then return it. And this time of course we just call Lin and then for the backward pass, it’s the same thing. Okay, so the input gradients we calculate just like before, oh .t brackets is exactly the same with a little t as big T is as a property. So that’s the same thing. That’s just the transpose. Calculate the gradients of the weights again with a chain rule and the bias, just like we do that before and they’re all being stored in the appropriate places. And then for MSE, we can do the same thing. We don’t just calculate the MSE, but we also store it and also now the MSE. And it just needs two things an input and a target. So we’ll store those as well so that in the backward pass we can calculate its gradient of the input as being two times the difference. And there it all is. Okay, so our model now it’s much easier to define. We can just create a bunch of layers, linear one,, w1,b1 relu, linear ,w2,b2, and then we can store an instance of the MSE. So this is not calling MSE, it’s creating an instance of the MSE class, and this is an instance of the Lin class.</p>
+<p>This is an instance of relu class. So that is being stored. So then when we call the model, we pass it, our inputs in our target. We go through each layer, set x equal to the result of calling that layer and then pass that to the loss. So there’s something kind of interesting here that you might have noticed, which is that Something interesting here is that we don’t have two separate functions inside and inside our model, the lost function being applied to a separate neural net. But we’ve actually integrated the lost function directly into the neural net, into the model, see how the loss is being calculated inside the model. Now, that’s neither better nor worse than having it separately. It’s just different. And generally a lot of hugging faced stuff does it this way. They actually put the loss inside the forward Most stuff in FastAI and a lot of other libraries does it separately, which is the loss is a whole separate function and the model only returns the result of putting it through the layers. So for this model we’re going to actually do the loss function inside model. So for backward, we just do each thing so self.loss.backward . So that self taught losses the MSE object. So that’s going to call backward, right? And it’s stored when it was called here it was storing remember the inputs, the targets, the outputs so it can calculate the backward and then we go through each layer is in reverse. Right. This is back propagation backwards, reversed, calling backward on each one. So that’s pretty interesting. I think. So now we can calculate the model, we can calculate the loss we can call backward, and then we can check that each of the gradients that we stored earlier equal to each of our new gradients</p>
+<p>Okay. So Williams asked a very good question that if you do puts put the loss inside here, how on earth do you actually get predictions? So generally what happens is in practice, huggingface models do something like that. So say self.preds equals x and then they’ll say self.final_loss = self.loss(x,targ) that and then return self.final_loss. And that way I guess you don’t even need that last bit. Well anyway, this is what they do so I’ll leave it there. And so that way you can kind of check like model.preds for example. So it’ll be something like that. Or alternatively, you can return not just the loss, but both as a dictionary, stuff like that. So a few different ways you could do it actually. Now think about it. I think that’s what they do is they actually return both as a dictionary. So it would be, it’d be like return dictionary loss equals that , preds = x .Something like that, I guess is what they would do. Anyway. There’s a few different ways to do it. Okay. So hopefully you can see that this is really making it nice and easy for us to do our forward pass and our backward paths. Without all of this manual fiddling around. Every class now can be totally separately considered and can be combined. However want. We could create layers so you could try creating a bigger neural net if you want to, but we can refactor it more. So basically as a rule of thumb, when you see repeated like self.inp = inp…. That’s a sign can refactor things. And so what we can do is a simple refactoring this to create a new class called module and modules gonna do those things. You said it’s going to store the inputs and it’s going to call something called self.forward in order to create our self.out because remember, that was one of the things we had again and again and again, self.out, return it. And so now that’s going to be a thing called forward which actually in this it doesn’t do anything because the whole purpose of this module is to be inherited. When we call backward, it’s going to call self.backward passing in self.out because notice all of our backwards always wanted to get hold of self.out because we need it for the chain role. So let’s pass that in and pass in those arguments that we start earlier.</p>
+</section>
+</section>
+<section id="refactor-model" class="level2">
+<h2 class="anchored" data-anchor-id="refactor-model">Refactor model</h2>
+<section id="layers-as-classes" class="level3">
+<h3 class="anchored" data-anchor-id="layers-as-classes">Layers as classes</h3>
+<div class="cell" data-execution_count="32">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Relu():</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, inp):</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.inp <span class="op">=</span> inp</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.out <span class="op">=</span> inp.clamp_min(<span class="fl">0.</span>)</span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.out</span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> backward(<span class="va">self</span>): <span class="va">self</span>.inp.g <span class="op">=</span> (<span class="va">self</span>.inp<span class="op">&gt;</span><span class="dv">0</span>).<span class="bu">float</span>() <span class="op">*</span> <span class="va">self</span>.out.g</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="33">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Lin():</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, w, b): <span class="va">self</span>.w,<span class="va">self</span>.b <span class="op">=</span> w,b</span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, inp):</span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.inp <span class="op">=</span> inp</span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.out <span class="op">=</span> lin(inp, <span class="va">self</span>.w, <span class="va">self</span>.b)</span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.out</span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> backward(<span class="va">self</span>):</span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.inp.g <span class="op">=</span> <span class="va">self</span>.out.g <span class="op">@</span> <span class="va">self</span>.w.t()</span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.w.g <span class="op">=</span> <span class="va">self</span>.inp.t() <span class="op">@</span> <span class="va">self</span>.out.g</span>
+<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.b.g <span class="op">=</span> <span class="va">self</span>.out.g.<span class="bu">sum</span>(<span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="34">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Mse():</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, inp, targ):</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.inp,<span class="va">self</span>.targ <span class="op">=</span> inp,targ</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.out <span class="op">=</span> mse(inp, targ)</span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.out</span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> backward(<span class="va">self</span>):</span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.inp.g <span class="op">=</span> <span class="fl">2.</span> <span class="op">*</span> (<span class="va">self</span>.inp.squeeze() <span class="op">-</span> <span class="va">self</span>.targ).unsqueeze(<span class="op">-</span><span class="dv">1</span>) <span class="op">/</span> <span class="va">self</span>.targ.shape[<span class="dv">0</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="35">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Model():</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, w1, b1, w2, b2):</span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.layers <span class="op">=</span> [Lin(w1,b1), Relu(), Lin(w2,b2)]</span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.loss <span class="op">=</span> Mse()</span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, x, targ):</span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> l <span class="kw">in</span> <span class="va">self</span>.layers: x <span class="op">=</span> l(x)</span>
+<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.loss(x, targ)</span>
+<span id="cb49-9"><a href="#cb49-9" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb49-10"><a href="#cb49-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> backward(<span class="va">self</span>):</span>
+<span id="cb49-11"><a href="#cb49-11" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.loss.backward()</span>
+<span id="cb49-12"><a href="#cb49-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> l <span class="kw">in</span> <span class="bu">reversed</span>(<span class="va">self</span>.layers): l.backward()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="36">
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> Model(w1, b1, w2, b2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="37">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>loss <span class="op">=</span> model(x_train, y_train)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="38">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>model.backward()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="39">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>test_close(w2g, w2.g, eps<span class="op">=</span><span class="fl">0.01</span>)</span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>test_close(b2g, b2.g, eps<span class="op">=</span><span class="fl">0.01</span>)</span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>test_close(w1g, w1.g, eps<span class="op">=</span><span class="fl">0.01</span>)</span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>test_close(b1g, b1.g, eps<span class="op">=</span><span class="fl">0.01</span>)</span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>test_close(ig, x_train.g, eps<span class="op">=</span><span class="fl">0.01</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="module.forward" class="level3">
+<h3 class="anchored" data-anchor-id="module.forward">Module.forward()</h3>
+<p>And so *args means take all of the arguments regardless whether it’s zero one, two or more, and put them into a list. And then that’s what happens when it’s inside the actual signature. And then when you call a function using star, it says take this list and expand them into separate calling backward with each one separately. So now for relu, you look how much simpler it is. Let’s copy the old relu and the new relu. So the old relu you had to do all this storing stuff manually and it had a little self.stuff as well. But now we can get rid of all of that and just implement forward because that’s the thing that’s been called and that’s the thing that we need to implement. And so now the forward is relu just as the one thing we want, which also makes the code much cleaner and more understandable. Ditto for backward. It just does. The one thing we want. So that’s nice. Now we still have to multiply it by two after the chain rule manually, but same thing for linear, same thing for MSE. So these all look a lot nicer. And one thing to point out here is that there’s often opportunities to manually speed things up when you create custom order grad functions in PyTorch. And here’s an example. Look, this calculation is being done twice. It seems like a waste, doesn’t it so at the cost of some memory, we could instead store that calculation as diff. Right. And I guess we’d have to store it fur use it later. So I don’t need to be self.diff if and the cost of that memory, we could now remove this redundant calculation because we’ve done it once before already and stored it and just use it directly. And this is something that you can often do in neural nets. So there’s this compromise between storing things, the memory use of that and then the computational speed up of not having to recalculate it. This is something we come across a lot. And so now we can call it in the same way, create a model passing in all of those layers. So you can see with our model, we’re just so the model hasn’t changed at this point. The definition was up here. We just passed in The weights for the layers calculate the loss called backward and look. It’s the same right? Okay. So thankfully, PyTorch has written all this for us. And remember, according to rules of our game, once we’ve reimplemented it, we’re allowed to use PyTorch as version. So PyTorch calls their version and nn.Module. And so it’s exactly the same you inherit from an nn.Module. So if we want to create a linear layer just like this one, rather than inheriting our module, we will inherit from that module, but everything’s exactly the same. So we create our, we can create our random numbers. So in this case, rather than passing in the already randomized weights, we’re actually going to generate the random weights ourselves and the zeroed biases and. Then here’s our linear layer, which you could also use Lin for that.</p>
+<div class="cell" data-execution_count="40">
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Module():</span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, <span class="op">*</span>args):</span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.args <span class="op">=</span> args</span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.out <span class="op">=</span> <span class="va">self</span>.forward(<span class="op">*</span>args)</span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.out</span>
+<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>): <span class="cf">raise</span> <span class="pp">Exception</span>(<span class="st">'not implemented'</span>)</span>
+<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> backward(<span class="va">self</span>): <span class="va">self</span>.bwd(<span class="va">self</span>.out, <span class="op">*</span><span class="va">self</span>.args)</span>
+<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> bwd(<span class="va">self</span>): <span class="cf">raise</span> <span class="pp">Exception</span>(<span class="st">'not implemented'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="41">
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Relu(Module):</span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, inp): <span class="cf">return</span> inp.clamp_min(<span class="fl">0.</span>)</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> bwd(<span class="va">self</span>, out, inp): inp.g <span class="op">=</span> (inp<span class="op">&gt;</span><span class="dv">0</span>).<span class="bu">float</span>() <span class="op">*</span> out.g</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="42">
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Lin(Module):</span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, w, b): <span class="va">self</span>.w,<span class="va">self</span>.b <span class="op">=</span> w,b</span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, inp): <span class="cf">return</span> inp<span class="op">@</span>self.w <span class="op">+</span> <span class="va">self</span>.b</span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> bwd(<span class="va">self</span>, out, inp):</span>
+<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>        inp.g <span class="op">=</span> <span class="va">self</span>.out.g <span class="op">@</span> <span class="va">self</span>.w.t()</span>
+<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.w.g <span class="op">=</span> inp.t() <span class="op">@</span> <span class="va">self</span>.out.g</span>
+<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.b.g <span class="op">=</span> <span class="va">self</span>.out.g.<span class="bu">sum</span>(<span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="43">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Mse(Module):</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward (<span class="va">self</span>, inp, targ): <span class="cf">return</span> (inp.squeeze() <span class="op">-</span> targ).<span class="bu">pow</span>(<span class="dv">2</span>).mean()</span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> bwd(<span class="va">self</span>, out, inp, targ): inp.g <span class="op">=</span> <span class="dv">2</span><span class="op">*</span>(inp.squeeze()<span class="op">-</span>targ).unsqueeze(<span class="op">-</span><span class="dv">1</span>) <span class="op">/</span> targ.shape[<span class="dv">0</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="44">
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> Model(w1, b1, w2, b2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="45">
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>loss <span class="op">=</span> model(x_train, y_train)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="46">
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>model.backward()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="47">
+<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>test_close(w2g, w2.g, eps<span class="op">=</span><span class="fl">0.01</span>)</span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>test_close(b2g, b2.g, eps<span class="op">=</span><span class="fl">0.01</span>)</span>
+<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a>test_close(w1g, w1.g, eps<span class="op">=</span><span class="fl">0.01</span>)</span>
+<span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a>test_close(b1g, b1.g, eps<span class="op">=</span><span class="fl">0.01</span>)</span>
+<span id="cb61-5"><a href="#cb61-5" aria-hidden="true" tabindex="-1"></a>test_close(ig, x_train.g, eps<span class="op">=</span><span class="fl">0.01</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>And of course,</p>
+<p>so define our forward. And why don’t we need to define backward? Because PyTorch already knows the derivatives of all of the functions in PyTorch and it knows how to use the chain rule so we don’t have to do backward at all. It will actually do that entirely for us, which is very cool. So we only need forward. We don’t need backward.</p>
+<p>So let’s create a model that uses that nn.Moddule. Otherwise it’s exactly the same as before. And now we’re going to use PyTorch as MSE loss because we’ve already implemented ourselves. It’s very common to use torch.nn.functional as capital P. This is where lots of these handy functions live, including MSE loss. And so now you know why we need the colon comma None because you saw the problem if we don’t have it. And so the model call backward. And remember, we stored our gradients in something called (.g) PyTorch stores them in something called (.grad), but it’s doing exactly the same thing. So there is the exact same values. All right. So let’s see if there’s any questions. Not yet. Okay. All right. If anybody in the class has any questions or comments about any of this, let me know. Remember to upvote questions that you’re interested in.</p>
+<p>So we’ve we’ve created a matrix multiplication from scratch.</p>
+<p>We’ve created linear layers,</p>
+<p>we’ve created a complete backprop system of modules.</p>
+<p>We can now calculate both the forward pass and the backward pass for linear layers and relus so we can create a multi-layer perceptron.</p>
+<p>So we’re now up to a point where we can train a model.</p>
+<p>So let’s do that mini batch training Notebook number 4.</p>
+</section>
+<section id="autograd" class="level3">
+<h3 class="anchored" data-anchor-id="autograd">Autograd</h3>
+<div class="cell" data-execution_count="48">
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> torch <span class="im">import</span> nn</span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch.nn.functional <span class="im">as</span> F</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="49">
+<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Linear(nn.Module):</span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, n_in, n_out):</span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.w <span class="op">=</span> torch.randn(n_in,n_out).requires_grad_()</span>
+<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.b <span class="op">=</span> torch.zeros(n_out).requires_grad_()</span>
+<span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, inp): <span class="cf">return</span> inp<span class="op">@</span>self.w <span class="op">+</span> <span class="va">self</span>.b</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="50">
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Model(nn.Module):</span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, n_in, nh, n_out):</span>
+<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
+<span id="cb64-4"><a href="#cb64-4" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.layers <span class="op">=</span> [Linear(n_in,nh), nn.ReLU(), Linear(nh,n_out)]</span>
+<span id="cb64-5"><a href="#cb64-5" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb64-6"><a href="#cb64-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, x, targ):</span>
+<span id="cb64-7"><a href="#cb64-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> l <span class="kw">in</span> <span class="va">self</span>.layers: x <span class="op">=</span> l(x)</span>
+<span id="cb64-8"><a href="#cb64-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> F.mse_loss(x, targ[:,<span class="va">None</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="51">
+<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> Model(m, nh, <span class="dv">1</span>)</span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>loss <span class="op">=</span> model(x_train, y_train)</span>
+<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>loss.backward()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="72c85aac-46f1-424f-eacc-1020ae1fb25a" data-execution_count="52">
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>l0 <span class="op">=</span> model.layers[<span class="dv">0</span>]</span>
+<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>l0.b.grad</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="52">
+<pre><code>tensor([-19.60,  -2.40,  -0.12,   1.99,  12.78, -15.32, -18.45,   0.35,   3.75,  14.67,  10.81,  12.20,  -2.95, -28.33,
+          0.76,  69.15, -21.86,  49.78,  -7.08,   1.45,  25.20,  11.27, -18.15, -13.13, -17.69, -10.42,  -0.13, -18.89,
+        -34.81,  -0.84,  40.89,   4.45,  62.35,  31.70,  55.15,  45.13,   3.25,  12.75,  12.45,  -1.41,   4.55,  -6.02,
+        -62.51,  -1.89,  -1.41,   7.00,   0.49,  18.72,  -4.84,  -6.52])</code></pre>
+</div>
+</div>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

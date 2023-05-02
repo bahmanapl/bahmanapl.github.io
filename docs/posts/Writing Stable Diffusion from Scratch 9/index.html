@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.1.251">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Bahman Sadeghi">
+<meta name="dcterms.date" content="2023-03-29">
+
+<title>Bahman Sadeghi - Writing Stable Diffusion from Scratch 9</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-6DEHC34SZW"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-6DEHC34SZW', { 'anonymize_ip': true});
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+<script src="https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js" crossorigin="anonymous"></script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Bahman Sadeghi</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html">Home</a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html">About Me</a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../index.xml"><i class="bi bi-rss" role="img">
+</i> 
+ </a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/bahmanapl"><i class="bi bi-github" role="img">
+</i> 
+ </a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/Bahman_Apl"><i class="bi bi-twitter" role="img">
+</i> 
+ </a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#callbacks" id="toc-callbacks" class="nav-link active" data-scroll-target="#callbacks">Callbacks</a>
+  <ul class="collapse">
+  <li><a href="#callbacks-as-gui-events" id="toc-callbacks-as-gui-events" class="nav-link" data-scroll-target="#callbacks-as-gui-events">Callbacks as GUI events</a></li>
+  <li><a href="#creating-your-own-callback" id="toc-creating-your-own-callback" class="nav-link" data-scroll-target="#creating-your-own-callback">Creating your own callback</a></li>
+  <li><a href="#lambdas-and-partials" id="toc-lambdas-and-partials" class="nav-link" data-scroll-target="#lambdas-and-partials">Lambdas and partials</a></li>
+  <li><a href="#callbacks-as-callable-classes" id="toc-callbacks-as-callable-classes" class="nav-link" data-scroll-target="#callbacks-as-callable-classes">Callbacks as callable classes</a></li>
+  <li><a href="#multiple-callback-funcs-args-and-kwargs" id="toc-multiple-callback-funcs-args-and-kwargs" class="nav-link" data-scroll-target="#multiple-callback-funcs-args-and-kwargs">Multiple callback funcs; <code>*args</code> and <code>**kwargs</code></a></li>
+  <li><a href="#modifying-behavior" id="toc-modifying-behavior" class="nav-link" data-scroll-target="#modifying-behavior">Modifying behavior</a></li>
+  </ul></li>
+  <li><a href="#dunder__-thingies" id="toc-dunder__-thingies" class="nav-link" data-scroll-target="#dunder__-thingies"><code>__dunder__</code> thingies</a>
+  <ul class="collapse">
+  <li><a href="#getattr__-and-getattr" id="toc-getattr__-and-getattr" class="nav-link" data-scroll-target="#getattr__-and-getattr"><code>__getattr__</code> and <code>getattr</code></a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Writing Stable Diffusion from Scratch 9</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">fastaipart2</div>
+    <div class="quarto-category">Stable-Diffusion</div>
+  </div>
+  </div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Bahman Sadeghi </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 29, 2023</p>
+    </div>
+  </div>
+    
+  </div>
+  
+
+</header>
+
+<p>All credits goes to fast.ai All mistakes are mine.</p>
+<p>You should know and practice following after this blog post : <br> 1- Callbacks , callable class <br> 2- Partial <br> 3- Lambda <br> 4- <strong>dunder</strong> thingies <br></p>
+<div class="cell" data-execution_count="51">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> random</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>So we’ve kind of got nearly got all of our infrastructure in place before we do this. Some pieces of python, which not everybody knows and I want to kind of talk about and kind of computer science concepts I want to talk about. So that’s what our six foundations is about. So this whole section is just going to tell. It is going to talk about some stuff in Python that you might not have come across before, or maybe it’s a review for some of you as well. And it’s all stuff we’re going to be using basically in the next notebook.</p>
+<p>So that’s why I want to talk to cover it. So we’re going to be creating a learner class. So a learner class is going to be a very general purpose training loop, which we can get to to do anything that we want it to do. And we’re going to be creating things called callbacks to make that happen. And so therefore we’re going to spend a few moments talking about what are callbacks, how are they used in in computer science, how are they implemented? Look at some examples. They come up a lot.</p>
+<p>Perhaps the most common place that you see callbacks in software is for doing events of events from some graphical user interface. So the main graphical user interface library in Jupyter notebooks is called ipywidgets, and we can create a widget like a pattern . And when we display it, it shows me a button and at the moment it doesn’t do anything. If I click on it. What we can do though, is we can add and onclick callback to it,we’re going to pass it a function which is called when you click it. So to find that function. So I’m going to say w.on_click(f) is going to assign the f function to the on_click callback. Now, if I click this, there you go. It’s doing it. Now, what does that mean?</p>
+<p>Well, a callback is simply a callable that you’ve provided. So remember, a callable is a more general version of a function. So in this case, it is a function that you’ve provided that will be called back to when something happens. So in this case, so something that’s happening is that they’re clicking a button. So this is how we are defining and using a callback as a GUI event. So basically everything in ipywidgets, if you want to create your own graphical user interfaces for Jupyter, you can do it with ipy widgets and by using these callbacks. So these particular kinds of callbacks are called events, but it’s just a callback. All right, so that’s somebody else’s callback.</p>
+<section id="callbacks" class="level2">
+<h2 class="anchored" data-anchor-id="callbacks">Callbacks</h2>
+<section id="callbacks-as-gui-events" class="level3">
+<h3 class="anchored" data-anchor-id="callbacks-as-gui-events">Callbacks as GUI events</h3>
+<div class="cell" data-execution_count="52">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> ipywidgets <span class="im">as</span> widgets</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>From the <a href="https://ipywidgets.readthedocs.io/en/stable/examples/Widget%20Events.html">ipywidget docs</a>:</p>
+<ul>
+<li><em>the button widget is used to handle mouse clicks. The on_click method of the Button can be used to register function to be called when the button is clicked</em></li>
+</ul>
+<div class="cell" data-execution_count="53">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>w <span class="op">=</span> widgets.Button(description<span class="op">=</span><span class="st">'Click me'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="7441a168-08d0-4ddc-bc21-ca78e9f08085" data-execution_count="54">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>w</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<script type="application/vnd.jupyter.widget-view+json">
+{"version_major":2,"version_minor":0,"model_id":"b1f2b837ac664a7997b42e074f65280f"}
+</script>
+</div>
+</div>
+<div class="cell" data-execution_count="55">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> f(o): <span class="bu">print</span>(<span class="st">'hi'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="56">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>w.on_click(f)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><em>NB: When callbacks are used in this way they are often called “events”.</em></p>
+<p>Let’s create our own callback. So let’s say we’ve some very slow calculation, and so it takes a very long time to add up the numbers 0 to 5 squared because we sleep for a second after each one. So let’s run our slow calculation. Still running. Oh, how’s it going? Come on, finish our calculation.</p>
+<p>There we go. The answer is 30. Now, for a slow calculation like that, such as training, a model, it’s a slow calculation. It’ll be nice to do things like, I don’t know, you know, print out loss from time to time or show a progress bar or whatever. So generally, for those kinds of things, we would like to define a callback that is called at the end of each epoch or batch or every few seconds or something like that.</p>
+</section>
+<section id="creating-your-own-callback" class="level3">
+<h3 class="anchored" data-anchor-id="creating-your-own-callback">Creating your own callback</h3>
+<div class="cell" data-execution_count="57">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> time <span class="im">import</span> sleep</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="58">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> slow_calculation():</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    res <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">5</span>):</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>        res <span class="op">+=</span> i<span class="op">*</span>i</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>        sleep(<span class="dv">1</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> res</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="e3d6648f-705c-4da3-876a-c0efca36d0b4" data-execution_count="59">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>slow_calculation()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="59">
+<pre><code>30</code></pre>
+</div>
+</div>
+<p>So here’s how we can modify our calculation routine such that you can optionally pass it a callback. And so all of these codes are the same, except we’ve added this one line of code that says if there’s a callback, then call it and pass in what what we’re up to. So then we could create our callback function. So this is just like we created a our callback function f let’s create a show_progress callback function that’s going to tell us how far we’ve got. So now if we call slow calculation passing in our callback, you can say it’s going to call this function at the end of each step.</p>
+<p>So here we’ve created our own callback so there’s nothing special about a callback. Like it doesn’t require its own like syntax. It’s not a new concept, it’s just an idea really, which is the idea of passing in a function which some other function will call at particular times, such as at the end of a step or such as when you click a button. So that’s what we mean by callbacks.</p>
+<p>We don’t have to define the function ahead of time. We could define the function at the same time that we call the slow calculation by using Lambda. So as we’ve discussed before, Lambda just defines a function, but it doesn’t give it a name. So here’s a function that takes one parameter and prints out exactly the same thing as before. So here’s the same way as doing it, but using a lambda, we could make it more sophisticated now and rather than always saying also we finished epoc, whatever we could have let you pass in an exclamation and we print that out. And so in this case, we could now have our lambda call that function. And so one of the things that we can do now is to again, we can create a function that returns a function. And so we could create a make_ _show_progress function where you pass in the exclamation mark. We could then create in this no need to give it a name. it’s just return it directly. We can return a function that calls that exclamation. So here we are passing in Nice, and that’s exactly the same as doing something like what we’ve done before. We could say instead of using a lambda we can create in a function like this. So here is now a function that returns, a function that says exactly the same thing. Okay, so one way with the lambda when we’re allowed to lambda and one of the reasons I wanted to show you that is so we can do exactly the same thing using partial. So with partial, it’s going to do exactly the same thing as this kind of makes show progress. It’s going to call, show progress and pass. Okay. I guess so is again an example of a function returning a function. And so this is a function that calls show progress, passing in this as the first parameter. And Again, it does exactly the same thing. Okay. So where you get we tend to use partial a lot. So that’s certainly something worth spending time practicing. Now, as we’ve discussed, Python doesn’t care about types in particular, and there’s nothing about any of this that requires cb to be a function.</p>
+<div class="cell" data-execution_count="60">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> slow_calculation(cb<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    res <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">5</span>):</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>        res <span class="op">+=</span> i<span class="op">*</span>i</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>        sleep(<span class="dv">1</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> cb: cb(i)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> res</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="61">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> show_progress(epoch): <span class="bu">print</span>(<span class="ss">f"Awesome! We've finished epoch </span><span class="sc">{</span>epoch<span class="sc">}</span><span class="ss">!"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="593c7b5d-a5d0-4819-efbf-21b055c017d3" data-execution_count="62">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>slow_calculation(show_progress)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Awesome! We've finished epoch 0!
+Awesome! We've finished epoch 1!
+Awesome! We've finished epoch 2!
+Awesome! We've finished epoch 3!
+Awesome! We've finished epoch 4!</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="62">
+<pre><code>30</code></pre>
+</div>
+</div>
+</section>
+<section id="lambdas-and-partials" class="level3">
+<h3 class="anchored" data-anchor-id="lambdas-and-partials">Lambdas and partials</h3>
+<div class="cell" data-outputid="bc8be93d-d044-447a-b86d-a200150329de" data-execution_count="63">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>slow_calculation(<span class="kw">lambda</span> o: <span class="bu">print</span>(<span class="ss">f"Awesome! We've finished epoch </span><span class="sc">{</span>o<span class="sc">}</span><span class="ss">!"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Awesome! We've finished epoch 0!
+Awesome! We've finished epoch 1!
+Awesome! We've finished epoch 2!
+Awesome! We've finished epoch 3!
+Awesome! We've finished epoch 4!</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="63">
+<pre><code>30</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="64">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> show_progress(exclamation, epoch): <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>exclamation<span class="sc">}</span><span class="ss">! We've finished epoch </span><span class="sc">{</span>epoch<span class="sc">}</span><span class="ss">!"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="22af378e-487a-4f75-c4b5-35ad9eb14902" data-execution_count="65">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>slow_calculation(<span class="kw">lambda</span> o: show_progress(<span class="st">"OK I guess"</span>, o))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>OK I guess! We've finished epoch 0!
+OK I guess! We've finished epoch 1!
+OK I guess! We've finished epoch 2!
+OK I guess! We've finished epoch 3!
+OK I guess! We've finished epoch 4!</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="65">
+<pre><code>30</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="66">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> make_show_progress(exclamation):</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _inner(epoch): <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>exclamation<span class="sc">}</span><span class="ss">! We've finished epoch </span><span class="sc">{</span>epoch<span class="sc">}</span><span class="ss">!"</span>)</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> _inner</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="bb06a680-f92b-448e-ea97-8b8bcf5e1b86" data-execution_count="67">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>slow_calculation(make_show_progress(<span class="st">"Nice!"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Nice!! We've finished epoch 0!
+Nice!! We've finished epoch 1!
+Nice!! We've finished epoch 2!
+Nice!! We've finished epoch 3!
+Nice!! We've finished epoch 4!</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="67">
+<pre><code>30</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="68">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> functools <span class="im">import</span> partial</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="34edcaa8-24e9-4121-acf2-6d7dac592bce" data-execution_count="69">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>slow_calculation(partial(show_progress, <span class="st">"OK I guess"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>OK I guess! We've finished epoch 0!
+OK I guess! We've finished epoch 1!
+OK I guess! We've finished epoch 2!
+OK I guess! We've finished epoch 3!
+OK I guess! We've finished epoch 4!</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="69">
+<pre><code>30</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="70">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>f2 <span class="op">=</span> partial(show_progress, <span class="st">"OK I guess"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>It just happens to be it just has to be a callable.</p>
+<p>A callable is something that that you can that you can call. And so as we’ve discussed another way of creating a callable is defining to__call__.</p>
+<p>So here’s a class and this is going to work exactly the same as our make show progress thing but now as a class so there’s a <strong>init</strong> which store the explanation and <strong>call</strong> the prints and so now we’re creating a object which is callable and does exactly the same thing</p>
+<p>so these are all like fundamental ideas that I want you to get really comfortable with the idea of <strong>call</strong> , dunder things in general, partials, classes because they come up all the time in PyTorch code and, and in the code we’ll be writing and, in fact, pretty much all frameworks. So it’s really important to feel comfortable with them. And remember, you don’t have to rely on the resources we’re providing, you know, if there are certain things here that are very new to you, you know, Google around for some tutorials, so ask for help in the forums, for finding things and so forth.</p>
+</section>
+<section id="callbacks-as-callable-classes" class="level3">
+<h3 class="anchored" data-anchor-id="callbacks-as-callable-classes">Callbacks as callable classes</h3>
+<div class="cell" data-execution_count="71">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ProgressShowingCallback():</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, exclamation<span class="op">=</span><span class="st">"Awesome"</span>): <span class="va">self</span>.exclamation <span class="op">=</span> exclamation</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, epoch): <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="va">self</span><span class="sc">.</span>exclamation<span class="sc">}</span><span class="ss">! We've finished epoch </span><span class="sc">{</span>epoch<span class="sc">}</span><span class="ss">!"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="72">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>cb <span class="op">=</span> ProgressShowingCallback(<span class="st">"Just super"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="ad1eef98-54a6-4824-fc24-f5500c029eda" data-execution_count="73">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>slow_calculation(cb)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Just super! We've finished epoch 0!
+Just super! We've finished epoch 1!
+Just super! We've finished epoch 2!
+Just super! We've finished epoch 3!
+Just super! We've finished epoch 4!</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="73">
+<pre><code>30</code></pre>
+</div>
+</div>
+</section>
+<section id="multiple-callback-funcs-args-and-kwargs" class="level3">
+<h3 class="anchored" data-anchor-id="multiple-callback-funcs-args-and-kwargs">Multiple callback funcs; <code>*args</code> and <code>**kwargs</code></h3>
+<p>And then I’m just going to briefly recover something I’ve mentioned before, which is *args, **kwargs because again, they come up a lot. I just want to show you how they work. So if we create a function that has *args and **kwargs, nothing else, and I’m just going to this function, just print them now, I’m going to call the function, I’m going to pass three, I’m going to pass a and I’m going to pass thing one equals.(f(3, ‘a’, thing1=“hello”)) Hello. Now, these are past what we would say by position. We haven’t got a block equals. They’re just stuck. They’re things that are passed by position are placed in *args if you have one. It doesn’t have to be called args, you can call it anything you like but in the star bit.</p>
+<p>And so you can see here that args is a tuple containing the positionally path documents.</p>
+<p>And then kwargs is a dictionary containing the name arguments. So that is all that *args and **kwargs does. And as I say, there’s nothing special about these names. I call this a I’ll call this b, okay. And it’ll do exactly the same thing.</p>
+<p>def f(*a, **b): print(f”args: {a}; kwargs: {b}“)</p>
+<p>Okay, so this comes up a lot. And so it’s it’s important to remember that this is literally all that they’re doing. And then on the other hand, let’s say we had a function which takes a couple of let’s try that print. I actually just put them directly a, b, c, okay. We can also, rather than just using them as parameters, we can also use some of them when calling something. So let’s say I create something called args again. It doesn’t have to be called args called, which contains one comma two. And I create something called kwargs that contains a dictionary</p>
+<p>args = [1,2] kwargs = {‘c’:3}</p>
+<p>G and I can pass in star args,star star kwargs. And that’s going to take this one two and pass them as individual arguments for positionally. And it’s going to take the {‘c’:3} and pass that as a named argument. c equals three. And there it is. Okay, so they’re kind of two linked but different ways that use star and star star.</p>
+<div class="cell" data-execution_count="74">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> f(<span class="op">*</span>a, <span class="op">**</span>b): <span class="bu">print</span>(<span class="ss">f"args: </span><span class="sc">{</span>a<span class="sc">}</span><span class="ss">; kwargs: </span><span class="sc">{</span>b<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="3e997525-c044-4429-8b1e-83d8cd7ad04b" data-execution_count="75">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>f(<span class="dv">3</span>, <span class="st">'a'</span>, thing1<span class="op">=</span><span class="st">"hello"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>args: (3, 'a'); kwargs: {'thing1': 'hello'}</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="76">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> g(a,b,c<span class="op">=</span><span class="dv">0</span>): <span class="bu">print</span>(a,b,c)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="9b408d56-5ca2-474a-933a-cc9572051e7d" data-execution_count="77">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>args <span class="op">=</span> [<span class="dv">1</span>,<span class="dv">2</span>]</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>kwargs <span class="op">=</span> {<span class="st">'c'</span>:<span class="dv">3</span>}</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>g(<span class="op">*</span>args, <span class="op">**</span>kwargs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>1 2 3</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="78">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> slow_calculation(cb<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>    res <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">5</span>):</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> cb: cb.before_calc(i)</span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>        res <span class="op">+=</span> i<span class="op">*</span>i</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>        sleep(<span class="dv">1</span>)</span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> cb: cb.after_calc(i, val<span class="op">=</span>res)</span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> res</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Okay. Now here’s a slightly different way of doing callbacks, which I really like in this case. I’ve now passing in a callback that’s not callable, but instead it’s going to have a method called before_calc and another method called after_calc. And I’m so now my callback is going to be a class containing a before_calc and after_calc method. And so if I run that, you can see that there it goes.</p>
+<p>Okay. And so this is printing before and after every step by call, calling before_calc and after_calc. So callback actually doesn’t have to be a callable. It doesn’t have to be a function. A callback could be something that contains methods. So we could have a version of this which actually, as you can see here, it’s going to pass int after_calc, both the epoch number and the value it’s up to. But by using star args and star star kwargs I can just safely ignore them if I don’t want them. Right? So it’s just going to chew them up and not complain.</p>
+<p>If I didn’t have those here, it won’t work because it got passed in value equals and there’s nothing here looking for val equals that doesn’t like that. So this is one good use star args and star star kwargs eat up arguments You don’t want.</p>
+<p>Or we could use the argument. So let’s actually use epoch and Val and print them out and there it is. So this is a more sophisticated callback that’s giving us status as we go.</p>
+<div class="cell" data-execution_count="79">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> PrintStepCallback():</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> before_calc(<span class="va">self</span>, <span class="op">*</span>args, <span class="op">**</span>kwargs): <span class="bu">print</span>(<span class="ss">f"About to start"</span>)</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> after_calc (<span class="va">self</span>, <span class="op">*</span>args, <span class="op">**</span>kwargs): <span class="bu">print</span>(<span class="ss">f"Done step"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="c8c3ac32-2690-4b51-e0d3-b162478a2a28" data-execution_count="80">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>slow_calculation(PrintStepCallback())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>About to start
+Done step
+About to start
+Done step
+About to start
+Done step
+About to start
+Done step
+About to start
+Done step</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="80">
+<pre><code>30</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="81">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> PrintStatusCallback():</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>): <span class="cf">pass</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> before_calc(<span class="va">self</span>, epoch, <span class="op">**</span>kwargs): <span class="bu">print</span>(<span class="ss">f"About to start: </span><span class="sc">{</span>epoch<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> after_calc (<span class="va">self</span>, epoch, val, <span class="op">**</span>kwargs): <span class="bu">print</span>(<span class="ss">f"After </span><span class="sc">{</span>epoch<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>val<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="a2edd19c-a2e8-499d-a707-9fd22925092a" data-execution_count="82">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>slow_calculation(PrintStatusCallback())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>About to start: 0
+After 0: 0
+About to start: 1
+After 1: 1
+About to start: 2
+After 2: 5
+About to start: 3
+After 3: 14
+About to start: 4
+After 4: 30</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="82">
+<pre><code>30</code></pre>
+</div>
+</div>
+</section>
+<section id="modifying-behavior" class="level3">
+<h3 class="anchored" data-anchor-id="modifying-behavior">Modifying behavior</h3>
+<div class="cell" data-execution_count="83">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> slow_calculation(cb<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>    res <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">5</span>):</span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> cb <span class="kw">and</span> <span class="bu">hasattr</span>(cb,<span class="st">'before_calc'</span>): cb.before_calc(i)</span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>        res <span class="op">+=</span> i<span class="op">*</span>i</span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a>        sleep(<span class="dv">1</span>)</span>
+<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> cb <span class="kw">and</span> <span class="bu">hasattr</span>(cb,<span class="st">'after_calc'</span>):</span>
+<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> cb.after_calc(i, res):</span>
+<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a>                <span class="bu">print</span>(<span class="st">"stopping early"</span>)</span>
+<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a>                <span class="cf">break</span></span>
+<span id="cb52-11"><a href="#cb52-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> res</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="84">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> PrintAfterCallback():</span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> after_calc (<span class="va">self</span>, epoch, val):</span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"After </span><span class="sc">{</span>epoch<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>val<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> val<span class="op">&gt;</span><span class="dv">10</span>: <span class="cf">return</span> <span class="va">True</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="9d531a5b-30d1-4bfb-c160-b651852b2ee8" data-execution_count="85">
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>slow_calculation(PrintAfterCallback())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>After 0: 0
+After 1: 1
+After 2: 5
+After 3: 14
+stopping early</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="85">
+<pre><code>14</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="86">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> SlowCalculator():</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, cb<span class="op">=</span><span class="va">None</span>): <span class="va">self</span>.cb,<span class="va">self</span>.res <span class="op">=</span> cb,<span class="dv">0</span></span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> callback(<span class="va">self</span>, cb_name, <span class="op">*</span>args):</span>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="kw">not</span> <span class="va">self</span>.cb: <span class="cf">return</span></span>
+<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a>        cb <span class="op">=</span> <span class="bu">getattr</span>(<span class="va">self</span>.cb,cb_name, <span class="va">None</span>)</span>
+<span id="cb57-7"><a href="#cb57-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> cb: <span class="cf">return</span> cb(<span class="va">self</span>, <span class="op">*</span>args)</span>
+<span id="cb57-8"><a href="#cb57-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-9"><a href="#cb57-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> calc(<span class="va">self</span>):</span>
+<span id="cb57-10"><a href="#cb57-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">5</span>):</span>
+<span id="cb57-11"><a href="#cb57-11" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.callback(<span class="st">'before_calc'</span>, i)</span>
+<span id="cb57-12"><a href="#cb57-12" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.res <span class="op">+=</span> i<span class="op">*</span>i</span>
+<span id="cb57-13"><a href="#cb57-13" aria-hidden="true" tabindex="-1"></a>            sleep(<span class="dv">1</span>)</span>
+<span id="cb57-14"><a href="#cb57-14" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> <span class="va">self</span>.callback(<span class="st">'after_calc'</span>, i):</span>
+<span id="cb57-15"><a href="#cb57-15" aria-hidden="true" tabindex="-1"></a>                <span class="bu">print</span>(<span class="st">"stopping early"</span>)</span>
+<span id="cb57-16"><a href="#cb57-16" aria-hidden="true" tabindex="-1"></a>                <span class="cf">break</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="87">
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ModifyingCallback():</span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> after_calc (<span class="va">self</span>, calc, epoch):</span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"After </span><span class="sc">{</span>epoch<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>calc<span class="sc">.</span>res<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> calc.res<span class="op">&gt;</span><span class="dv">10</span>: <span class="cf">return</span> <span class="va">True</span></span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> calc.res<span class="op">&lt;</span><span class="dv">3</span>: calc.res <span class="op">=</span> calc.res<span class="op">*</span><span class="dv">2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="88">
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>calculator <span class="op">=</span> SlowCalculator(ModifyingCallback())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="4edfb3e1-5f79-42a2-ac68-4fcd7d5ae899" data-execution_count="89">
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>calculator.calc()</span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>calculator.res</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>After 0: 0
+After 1: 1
+After 2: 6
+After 3: 15
+stopping early</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="89">
+<pre><code>15</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="dunder__-thingies" class="level2">
+<h2 class="anchored" data-anchor-id="dunder__-thingies"><code>__dunder__</code> thingies</h2>
+<p>Anything that looks like <code>__this__</code> is, in some way, <em>special</em>. Python, or some library, can define some functions that they will call at certain documented times. For instance, when your class is setting up a new object, python will call <code>__init__</code>. These are defined as part of the python <a href="https://docs.python.org/3/reference/datamodel.html#object.__init__">data model</a>.</p>
+<p>For instance, if python sees <code>+</code>, then it will call the special method <code>__add__</code>. If you try to display an object in Jupyter (or lots of other places in Python) it will call <code>__repr__</code>.</p>
+<p>Okay, So finally, let’s just review this idea dunder, which we’ve mentioned before, but just to, to really nail this home, anything that looks like this underscore, underscore something, underscore, underscore something is special. And basically it could be that Python has to find that special thing or PyTorch has to find that special thing or numpy as to find that special thing. But this special these are called under methods. And some of them are defined as part of the Python data model.</p>
+<p>And so if you go to the Python documentation, it’ll tell you about these various different his <strong>repr</strong> which we used earlier is <strong>init</strong> that we used earlier. So they’re all here. PyTorch has some of its own, numpy has some of its own.</p>
+<p>So for example, if python says plus what it actually does is it calls <strong>add</strong>. So if we want to create something that’s not very good at adding things, it actually also always adds point. I want to it that I can say sloppy at a one plus floppy at a two equals 3.01. So plus here is actually calling <strong>add</strong>. So if you’re not familiar with this, click on this data model link and read about these specific one two, three, four, five, six, seven, eight, nine, ten, 11 methods because we’ll be using all of these in the course.</p>
+<p>So I’ll try to revise them when we can. But I’m generally going to assume that, you know, a particularly interesting one is <strong>getattr</strong> and <strong>getitem</strong>. We’ve seen <strong>setattr</strong> already get across just the opposite. Take a look at this. Here’s a class. It just contains two attributes a, b, that are set one and two. So create that an object of that class a.b equals two because I set b to two. Okay. Now when you say dot B, that’s just in texture. Good. Basically in Python, what it’s actually calling behind the scenes is <strong>getattr</strong>, it calls, <strong>getattr</strong> on the object. And so this one here is the same <strong>getattr</strong> a comma b which hopefully</p>
+<div class="cell" data-execution_count="90">
+<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> SloppyAdder():</span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>,o): <span class="va">self</span>.o<span class="op">=</span>o</span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__add__</span>(<span class="va">self</span>,b): <span class="cf">return</span> SloppyAdder(<span class="va">self</span>.o <span class="op">+</span> b.o <span class="op">+</span> <span class="fl">0.01</span>)</span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__repr__</span>(<span class="va">self</span>): <span class="cf">return</span> <span class="bu">str</span>(<span class="va">self</span>.o)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="9e261baf-9698-4170-86bc-669e031dccec" data-execution_count="91">
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a>a <span class="op">=</span> SloppyAdder(<span class="dv">1</span>)</span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> SloppyAdder(<span class="dv">2</span>)</span>
+<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>a<span class="op">+</span>b</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="91">
+<pre><code>3.01</code></pre>
+</div>
+</div>
+<p>Special methods you should probably know about (see data model link above) are:</p>
+<ul>
+<li><code>__getitem__</code></li>
+<li><code>__getattr__</code></li>
+<li><code>__setattr__</code></li>
+<li><code>__del__</code></li>
+<li><code>__init__</code></li>
+<li><code>__new__</code></li>
+<li><code>__enter__</code></li>
+<li><code>__exit__</code></li>
+<li><code>__len__</code></li>
+<li><code>__repr__</code></li>
+<li><code>__str__</code></li>
+</ul>
+<section id="getattr__-and-getattr" class="level3">
+<h3 class="anchored" data-anchor-id="getattr__-and-getattr"><code>__getattr__</code> and <code>getattr</code></h3>
+<div class="cell" data-execution_count="92">
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> A: a,b<span class="op">=</span><span class="dv">1</span>,<span class="dv">2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="93">
+<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>a <span class="op">=</span> A()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="f5e606b7-c725-4df8-b945-f0075f6e2dfe" data-execution_count="94">
+<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a>a.b</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="94">
+<pre><code>2</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="7364bbf2-8b1d-42c2-e872-cabf9cde48db" data-execution_count="95">
+<div class="sourceCode cell-code" id="cb70"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="bu">getattr</span>(a, <span class="st">'b'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="95">
+<pre><code>2</code></pre>
+</div>
+</div>
+<p>I’ll actually that’ll be yes our calls get a b and this can kind of be fun because you could call, <strong>getattr</strong> a comma and either b or a randomly . So if I run this 21112 as you can say, it’s random. So yeah, Python such a dynamic language, you can even set it up so it literally don’t know what attributes are going to be called. Now getattr behind the scenes. It’s actually calling something called <strong>getattr</strong> and by default it’ll use the version in the object based class. So here’s something just like a it’s got a and b defined, but I’ve also got time getattr defined and so <strong>getattr</strong> It’s only called for stuff that hasn’t been defined yet and it’ll pass in the key of the the name of the attribute. So generally speaking, if the first character is an underscore, it’s going to be private or special. So That’s going to raise an attribute error. Otherwise I’m going to steal it and return hello from k. So if I go b.athat’s defined so it gives me one. If I go b.foo, that’s not defined. So calls <strong>getattr</strong> and I get back hello from foo. And so this gets used a lot in both fastai code and also huggingface code to you know often make it more convenient to access things. So that’s yeah that’s how we getattr function and <strong>getattr</strong> method work.</p>
+<div class="cell" data-outputid="58dec279-8efa-4827-bc7f-0b5de2250f35" data-execution_count="96">
+<div class="sourceCode cell-code" id="cb72"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="bu">getattr</span>(a, <span class="st">'b'</span> <span class="cf">if</span> random.random()<span class="op">&gt;</span><span class="fl">0.5</span> <span class="cf">else</span> <span class="st">'a'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="96">
+<pre><code>1</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="97">
+<div class="sourceCode cell-code" id="cb74"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> B:</span>
+<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a>    a,b<span class="op">=</span><span class="dv">1</span>,<span class="dv">2</span></span>
+<span id="cb74-3"><a href="#cb74-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__getattr__</span>(<span class="va">self</span>, k):</span>
+<span id="cb74-4"><a href="#cb74-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> k[<span class="dv">0</span>]<span class="op">==</span><span class="st">'_'</span>: <span class="cf">raise</span> <span class="pp">AttributeError</span>(k)</span>
+<span id="cb74-5"><a href="#cb74-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="ss">f'Hello from </span><span class="sc">{</span>k<span class="sc">}</span><span class="ss">'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="98">
+<div class="sourceCode cell-code" id="cb75"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a>b <span class="op">=</span> B()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="6255df91-4fc7-4bc2-c636-c917de6ad968" data-execution_count="99">
+<div class="sourceCode cell-code" id="cb76"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a>b.a</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="99">
+<pre><code>1</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="50111d78-52c1-4016-f99e-150d4439ed27" data-execution_count="100">
+<div class="sourceCode cell-code" id="cb78"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a>b.foo</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="100">
+<pre><code>'Hello from foo'</code></pre>
+</div>
+</div>
+<p>Okay so I went over that pretty quickly since I know for quite a few folks this will be all review, but I know for folks who haven’t seen any of this, this is a lot to cover. So I’m hoping that you all kind of go back over this, revise it slowly, experiment with it, and look up some additional resources and ask on the forum and stuff. That’s not clear. Remember, everybody has parts of the course that’s really easy for them and parts of the course that are completely unfamiliar for them. And so if this particular part of the course is completely unfamiliar to you, it’s not because this is harder or going to be more difficult or whatever. It’s just so happens that this is a bit that you’re less familiar with. Or maybe this stuff about calculus in the last lesson was a bit that you’re less familiar with. There isn’t really anything, particularly in the course, that’s more difficult than other parts. It’s just that, you know, based on whether you happen to have that background.</p>
+<p>And so yeah, if you spend a few hours studying and practicing, you know, you’ll be able to pick up these things and yeah, so don’t stress if there are things that you don’t get right away, just take the time. And if you Yeah, if you do get lost, please ask because people are very keen to help. If you’ve tried asking on the forum, hopefully you noticed that people are really keen to help. All right. So I think this has been a pretty successful lesson. We’ve we’ve got to a point where we’ve got a pretty nicely optimized training loop. We actually understand exactly what data load is and data sets do. We’ve got an optimizer. We’ve been playing with hugging face data sets and we’ve got those working really smoothly. So we really feel like we’re in a pretty good position to to write our generic learner training loop and then we can start building and experimenting with lots of models. So look forward to seeing you next. Time to doing that together. Okay.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script type="application/vnd.jupyter.widget-state+json">
+{"b1f2b837ac664a7997b42e074f65280f":{"model_module":"@jupyter-widgets/controls","model_name":"ButtonModel","model_module_version":"1.5.0","state":{"_dom_classes":[],"_model_module":"@jupyter-widgets/controls","_model_module_version":"1.5.0","_model_name":"ButtonModel","_view_count":null,"_view_module":"@jupyter-widgets/controls","_view_module_version":"1.5.0","_view_name":"ButtonView","button_style":"","description":"Click me","disabled":false,"icon":"","layout":"IPY_MODEL_4c6b1632763044b6a6dfcd1946644e3f","style":"IPY_MODEL_d80e831eaf104cff84c20f796d1fd53c","tooltip":""}},"4c6b1632763044b6a6dfcd1946644e3f":{"model_module":"@jupyter-widgets/base","model_name":"LayoutModel","model_module_version":"1.2.0","state":{"_model_module":"@jupyter-widgets/base","_model_module_version":"1.2.0","_model_name":"LayoutModel","_view_count":null,"_view_module":"@jupyter-widgets/base","_view_module_version":"1.2.0","_view_name":"LayoutView","align_content":null,"align_items":null,"align_self":null,"border":null,"bottom":null,"display":null,"flex":null,"flex_flow":null,"grid_area":null,"grid_auto_columns":null,"grid_auto_flow":null,"grid_auto_rows":null,"grid_column":null,"grid_gap":null,"grid_row":null,"grid_template_areas":null,"grid_template_columns":null,"grid_template_rows":null,"height":null,"justify_content":null,"justify_items":null,"left":null,"margin":null,"max_height":null,"max_width":null,"min_height":null,"min_width":null,"object_fit":null,"object_position":null,"order":null,"overflow":null,"overflow_x":null,"overflow_y":null,"padding":null,"right":null,"top":null,"visibility":null,"width":null}},"d80e831eaf104cff84c20f796d1fd53c":{"model_module":"@jupyter-widgets/controls","model_name":"ButtonStyleModel","model_module_version":"1.5.0","state":{"_model_module":"@jupyter-widgets/controls","_model_module_version":"1.5.0","_model_name":"ButtonStyleModel","_view_count":null,"_view_module":"@jupyter-widgets/base","_view_module_version":"1.2.0","_view_name":"StyleView","button_color":null,"font_weight":""}}}
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

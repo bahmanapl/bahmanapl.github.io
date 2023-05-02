@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.1.251">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Bahman Sadeghi">
+<meta name="dcterms.date" content="2023-03-25">
+
+<title>Bahman Sadeghi - Writing Stable Diffusion from Scratch 6</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="dark">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-6DEHC34SZW"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-6DEHC34SZW', { 'anonymize_ip': true});
+</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Bahman Sadeghi</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../index.html">Home</a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html">About Me</a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="../../index.xml"><i class="bi bi-rss" role="img">
+</i> 
+ </a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/bahmanapl"><i class="bi bi-github" role="img">
+</i> 
+ </a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/Bahman_Apl"><i class="bi bi-twitter" role="img">
+</i> 
+ </a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#initial-setup" id="toc-initial-setup" class="nav-link active" data-scroll-target="#initial-setup">Initial setup</a>
+  <ul class="collapse">
+  <li><a href="#data" id="toc-data" class="nav-link" data-scroll-target="#data">Data</a></li>
+  <li><a href="#cross-entropy-loss" id="toc-cross-entropy-loss" class="nav-link" data-scroll-target="#cross-entropy-loss">Cross entropy loss</a></li>
+  </ul></li>
+  <li><a href="#basic-training-loop" id="toc-basic-training-loop" class="nav-link" data-scroll-target="#basic-training-loop">Basic training loop</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Writing Stable Diffusion from Scratch 6</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">fastaipart2</div>
+    <div class="quarto-category">Stable-Diffusion</div>
+  </div>
+  </div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Bahman Sadeghi </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 25, 2023</p>
+    </div>
+  </div>
+    
+  </div>
+  
+
+</header>
+
+<p>What you should learn and practice after this : <br> 1- log , e rules 2- what is softmax 3- 4- Train a simple linear model from scratch</p>
+<p>So we’re now up to a point where we can train a model. So let’s do that mini batch training Notebook number four. So same first cell as before. We won’t go through it. The cells also the same as before, so we won’t go through it is the same model that we had before, so we won’t go through it. So I just rerunning all that to see. Okay,</p>
+<p>so the first thing we should do, I think, is to improve our loss function. So it’s not total rubbish anymore. So if you watch part one, you might recall that there are some Excel notebooks. One of those Excel notebooks is entropy example. Okay, so this is what we looked at. So just to remind you, what we’re doing now is which we’re saying, okay, rather than rather than outputting a single number for each image, we’re going to instead output ten numbers for each image. And so that’s going to be a one hot encoded set of it’ll be like 1000, etc.. And so then that’s going to be well, actually the outputs wont be 1000, they’ll be basically probabilities won’t they. So it’ll be like .99 comma, you know, 3.01 etc. and the targets will be one hot encoded. So if it’s the digit zero, for example, it might be 10000 that dot dot for all the ten possibilities. And so to see, you know, how good is it. So in this case, it’s very good. It had 0.99 probability prediction that it’s zero. And indeed it is, because this is this is the 100 coded version. And so the way we implement that is we don’t even need to actually do the one hot encoding, thanks to some tricks, we can actually just directly store the integer, but we can treat it as if it’s one hot encoded so we can just store the actual target zero as an integer. So the way we do that is we say, for example, for a single output, oh, it could be cat, let’s say cat, dog, plain fish building the neural net spits out a bunch of outputs. What we do for softmax is we go e to of the power of each of those outputs. We sum up all of those e of the power offs. So here’s the e of the power of each of those outputs is the sum of them. And then we divide one each one by the sum. So we divide each one by the sum that gives us a softMax’s. And then for the lost function, we then compare the softMax’s to the one encoded version. So let’s say it was a dog that’s going to have a one for dog and zero everywhere else. And then softMax, this is from this nice blog post here. This is the calculation, some of the ones and zeros. So each of the ones and zeros multiplied by the log of the probabilities. So here is the log probability times the actuals. And since the actual is either zero or one and only one of them is going to be a one, we’re only going to end up with one value here. And so if we add them up, it’s all zero except for one of them. So that’s a cross entropy. So in the special case where the outputs one had encoded, then during the one hot encoded multiplied by the log, softmax is actually identical to simply saying, Oh, dog is in this row, let’s just look it up directly and take its log soft max.</p>
+<p>We can just index directly into it. So it’s exactly the same thing. So that’s just review. So if you haven’t seen that before, then yeah, go and watch the part one video where we went into that in a lot more detail. Okay, So here’s our softmax calculation. It’s e to the power of each output divided by the sum of them all, we can use sigma notation to say exactly the same thing. And as you can see, Jupyter notebook lets us use latex. If you haven’t used latex before, it’s actually surprisingly easy to learn. You just put dollar signs around your equations like this and your equations backslash is going to be kind of like your functions if you like, and curly parentheses actually, Curly are used to kind of fit for arguments. So you can see here, here is e to the power of and then underscore as used just subscript. So this is x subscript i and power of is used for super scripts. So his dots you can see here it is dots so it’s actually yeah learning like tech is easier than you might expect. It can be quite convenient for writing these functions when you want to. So anyway, that’s what soft Max is as we’ll see in a moment. Well, actually, as you’ve already seen in cross entropy, we don’t really want soft Maxs. We want log of soft Macs. So a log of softMaxs is here it is. So we’ve got x.exp divided by x.exp.sum and we’re going to sum up over the last dimension and then we actually want to keep that dimension so that when we do the divided by, we want a trailing unit axis for exactly the same reason we saw when we did our MSE last function. So if you sum with keepdim = true, that leaves the unit axis in in that last position. So we don’t have to put it back to avoid that horrible out of product issue. So this is the equivalent of this and then .log. So that’s log of soft Maxs. So there is the log of the soft Maxs that are predictions. Now in terms of high school math, you may have forgotten, but you definitely are going to want to know a Key piece that in that list of things is is log and exponent rules.</p>
+<p>So check out Khan Academy or similar if you’ve forgotten them. But a quick reminder is, for example, the one we mentioned here log of A over B equals log of A minus log of B and equivalently log of A times B equals log of A plus log of B. And these are very handy because, for example, division can take a long time, multiply, can create really big numbers and have lots of floating point error. Being able to replace these things with pluses and minuses is very handy indeed. In fact, I used to give people an interview question which I did a lot of stuff with school and math school actually only has a some function for group by clauses. And I used to ask people how you would deal with calculate a compound interest column where the answer is basically that you have to say because compound interest is taking products. So it has be the sum of the log of the column and then e of the power of all that. So it’s like all kinds of little places that these things coming in handy, but they come in to neural nets all the time. So we’re going to take advantage of that because we’ve got a divided by it’s being logged and also rather handily. We’re going to have therefore the log of x.exp.log minus the log of this, but expand log opposites. So that is going to end up being x minus. So log soft max is just x minus, all this logged. And here it is, all this logged. So that’s nice. So here’s our simplified version. Okay, Now there’s another very cool trick, which is one of these things I figured out myself and then discovered other people have known it for years. So not my trick, but it’s always to rediscover things. The trick is what’s written here. Let me explain what’s going on. This piece here, the log of this sum right this sum here we’ve got x.exp.sum. Now x could be some pretty big numbers. And e of the power of that’s going to be really big numbers. And e of the power of things creating really big numbers. Well, really big numbers. There’s much less precision in your computers floating point handling the further, you get away from zero, basically. So we don’t want really big numbers, particularly because we’re going to be taking derivatives. And so if you’re in an area that’s not very precise as far as 13 point math is concerned, then the derivatives are going to be a disaster. They might even be zero because you’ve got two numbers that the computer can’t even recognize is different.</p>
+<p>So this is bad, but there’s a nice trick we can do to make it a lot better. What we can do is we can calculate the max of the max of X, right. And we’ll call that A. And so then rather than doing the log of the sum of e of x i, we’re instead going to define A as being the maximum of all of our X values. It’s our biggest number. Now, if we then subtract that from every number, that means none of the numbers are going to be big by definition because we have subtracted it from all of them. Now the problem is that’s given us a different result. Right? But if you think about it, let’s expand this sum. It’s e to the power of x one , say plus e of the power of X to plus e of the power of x three and so forth. Okay, Now we just subtracted a from our exponents, which is we’re now wrong. But I’ve got good news, I’ve got good news and bad is. The bad news is that you’ve got more high school math to remember, which is exponent rules. So X to the a plus b equals x to the a, times x to the b, and x to the b minus b equals x to the a divided by x to the b, And to convince yourself that’s true, consider for example, two to the power of two three. What is that what you’ve got to do?</p>
+<p>The power of two is just two times two and to the power of two plus three. Well, it’s two times. Two times it is to the power of five. So you’ve got two to the power of two, you’ve got two of them here and you’ve got another three of them here. So we’re just adding up the number to get the total index so we can take advantage of this here and say like, Oh well this is equal to a to the e to the x1 over e to the a plus e to the x2 over e to the a … And this is a common denominator. So we can put all that together why do we do all that. Because if we now multiply that all by e of the a these would cancel out and we get the thing we originally wanted. So that means we simply have to multiply this by that. And this gives us exactly the same thing as we had before.</p>
+<p>But with critically, this no longer ever going to be a giant number, so this might seem a bit weird. We’re doing extra calculations. It’s not a simplification, it’s a complexification, but it’s one that’s going to make it easier for our floating point unit. So that’s our trick. It’s rather than doing log of this sum, what we actually do is log of e of times the sum of e to the X minus a, And since we’ve got a log of a product that’s just a log, that’s just the sum of the logs and log of e to the a so it’s a plus that so this here is called</p>
+<p>the log sum x trick people are pointing out. Thank you for that of course should have been inside the log you got this go sticking it on the outside like a crazy person. Yeah. Yeah, That’s what I meant to say. Let’s check if you’ve got any questions. Any questions yet? Okay, so here is the log.call it a (m in notebook) But anyway, so we find the maximum on the last dimension. And then here is the m plus that exact thing. Okay, so that’s just another way of doing that. Okay, So that’s the log, sum exp. So now we can rewrite log soft max as x minus log sum exp, and we’re not going to use our evasion because PyTorch already has one, so we’re just use pytorches.</p>
+<p>::: {.cell 0=‘e’ 1=‘x’ 2=‘p’ 3=‘o’ 4=‘r’ 5=‘t’}</p>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pickle,gzip,math,os,time,shutil,torch,matplotlib <span class="im">as</span> mpl,numpy <span class="im">as</span> np,matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> torch <span class="im">import</span> tensor,nn</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch.nn.functional <span class="im">as</span> F</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>:::</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> fastcore.test <span class="im">import</span> test_close</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>mpl.rcParams[<span class="st">'image.cmap'</span>] <span class="op">=</span> <span class="st">'gray'</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>torch.set_printoptions(precision<span class="op">=</span><span class="dv">2</span>, linewidth<span class="op">=</span><span class="dv">125</span>, sci_mode<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>np.set_printoptions(precision<span class="op">=</span><span class="dv">2</span>, linewidth<span class="op">=</span><span class="dv">125</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>MNIST_URL<span class="op">=</span><span class="st">'https://github.com/mnielsen/neural-networks-and-deep-learning/blob/master/data/mnist.pkl.gz?raw=true'</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>path_data <span class="op">=</span> Path(<span class="st">'data'</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>path_data.mkdir(exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>path_gz <span class="op">=</span> path_data<span class="op">/</span><span class="st">'mnist.pkl.gz'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> urllib.request <span class="im">import</span> urlretrieve</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> path_gz.exists(): urlretrieve(MNIST_URL, path_gz)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>ls <span class="op">-</span>l data</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>total 16656
+-rw-r--r-- 1 root root 17051982 Mar 27 05:00 mnist.pkl.gz</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> gzip.<span class="bu">open</span>(path_gz, <span class="st">'rb'</span>) <span class="im">as</span> f: ((x_train, y_train), (x_valid, y_valid), _) <span class="op">=</span> pickle.load(f, encoding<span class="op">=</span><span class="st">'latin-1'</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>x_train, y_train, x_valid, y_valid <span class="op">=</span> <span class="bu">map</span>(tensor, [x_train, y_train, x_valid, y_valid])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="initial-setup" class="level2">
+<h2 class="anchored" data-anchor-id="initial-setup">Initial setup</h2>
+<section id="data" class="level3">
+<h3 class="anchored" data-anchor-id="data">Data</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>n,m <span class="op">=</span> x_train.shape</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>c <span class="op">=</span> y_train.<span class="bu">max</span>()<span class="op">+</span><span class="dv">1</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>nh <span class="op">=</span> <span class="dv">50</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Model(nn.Module):</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, n_in, nh, n_out):</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.layers <span class="op">=</span> [nn.Linear(n_in,nh), nn.ReLU(), nn.Linear(nh,n_out)]</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__call__</span>(<span class="va">self</span>, x):</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> l <span class="kw">in</span> <span class="va">self</span>.layers: x <span class="op">=</span> l(x)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> x</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> Model(m, nh, <span class="dv">10</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>pred <span class="op">=</span> model(x_train)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>pred.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>torch.Size([50000, 10])</code></pre>
+</div>
+</div>
+</section>
+<section id="cross-entropy-loss" class="level3">
+<h3 class="anchored" data-anchor-id="cross-entropy-loss">Cross entropy loss</h3>
+<p>First, we will need to compute the softmax of our activations. This is defined by:</p>
+<p><span class="math display">\[\hbox{softmax(x)}_{i} = \frac{e^{x_{i}}}{e^{x_{0}} + e^{x_{1}} + \cdots + e^{x_{n-1}}}\]</span></p>
+<p>or more concisely:</p>
+<p><span class="math display">\[\hbox{softmax(x)}_{i} = \frac{e^{x_{i}}}{\sum\limits_{0 \leq j \lt n} e^{x_{j}}}\]</span></p>
+<p>In practice, we will need the log of the softmax when we calculate the loss.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> log_softmax(x): <span class="cf">return</span> (x.exp()<span class="op">/</span>(x.exp().<span class="bu">sum</span>(<span class="op">-</span><span class="dv">1</span>,keepdim<span class="op">=</span><span class="va">True</span>))).log()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>log_softmax(pred)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>tensor([[-2.37, -2.49, -2.36,  ..., -2.31, -2.28, -2.22],
+        [-2.37, -2.44, -2.44,  ..., -2.27, -2.26, -2.16],
+        [-2.48, -2.33, -2.28,  ..., -2.30, -2.30, -2.27],
+        ...,
+        [-2.33, -2.52, -2.34,  ..., -2.31, -2.21, -2.16],
+        [-2.38, -2.38, -2.33,  ..., -2.29, -2.26, -2.17],
+        [-2.33, -2.55, -2.36,  ..., -2.29, -2.27, -2.16]], grad_fn=&lt;LogBackward0&gt;)</code></pre>
+</div>
+</div>
+<p>Note that the formula</p>
+<p><span class="math display">\[\log \left ( \frac{a}{b} \right ) = \log(a) - \log(b)\]</span></p>
+<p>gives a simplification when we compute the log softmax:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> log_softmax(x): <span class="cf">return</span> x <span class="op">-</span> x.exp().<span class="bu">sum</span>(<span class="op">-</span><span class="dv">1</span>,keepdim<span class="op">=</span><span class="va">True</span>).log()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Then, there is a way to compute the log of the sum of exponentials in a more stable way, called the <a href="https://en.wikipedia.org/wiki/LogSumExp">LogSumExp trick</a>. The idea is to use the following formula:</p>
+<p><span class="math display">\[\log \left ( \sum_{j=1}^{n} e^{x_{j}} \right ) = \log \left ( e^{a} \sum_{j=1}^{n} e^{x_{j}-a} \right ) = a + \log \left ( \sum_{j=1}^{n} e^{x_{j}-a} \right )\]</span></p>
+<p>where a is the maximum of the <span class="math inline">\(x_{j}\)</span>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> logsumexp(x):</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    m <span class="op">=</span> x.<span class="bu">max</span>(<span class="op">-</span><span class="dv">1</span>)[<span class="dv">0</span>]</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> m <span class="op">+</span> (x<span class="op">-</span>m[:,<span class="va">None</span>]).exp().<span class="bu">sum</span>(<span class="op">-</span><span class="dv">1</span>).log()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>This way, we will avoid an overflow when taking the exponential of a big activation. In PyTorch, this is already implemented for us.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> log_softmax(x): <span class="cf">return</span> x <span class="op">-</span> x.logsumexp(<span class="op">-</span><span class="dv">1</span>,keepdim<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>test_close(logsumexp(pred), pred.logsumexp(<span class="op">-</span><span class="dv">1</span>))</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>sm_pred <span class="op">=</span> log_softmax(pred)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>sm_pred</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>tensor([[-2.37, -2.49, -2.36,  ..., -2.31, -2.28, -2.22],
+        [-2.37, -2.44, -2.44,  ..., -2.27, -2.26, -2.16],
+        [-2.48, -2.33, -2.28,  ..., -2.30, -2.30, -2.27],
+        ...,
+        [-2.33, -2.52, -2.34,  ..., -2.31, -2.21, -2.16],
+        [-2.38, -2.38, -2.33,  ..., -2.29, -2.26, -2.17],
+        [-2.33, -2.55, -2.36,  ..., -2.29, -2.27, -2.16]], grad_fn=&lt;SubBackward0&gt;)</code></pre>
+</div>
+</div>
+<p>The cross entropy loss for some target <span class="math inline">\(x\)</span> and some prediction <span class="math inline">\(p(x)\)</span> is given by:</p>
+<p><span class="math display">\[ -\sum x\, \log p(x) \]</span></p>
+<p>But since our <span class="math inline">\(x\)</span>s are 1-hot encoded (actually, they’re just the integer indices), this can be rewritten as <span class="math inline">\(-\log(p_{i})\)</span> where i is the index of the desired target.</p>
+<p>This can be done using numpy-style <a href="https://docs.scipy.org/doc/numpy-1.13.0/reference/arrays.indexing.html#integer-array-indexing">integer array indexing</a>. Note that PyTorch supports all the tricks in the advanced indexing methods discussed in that link.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>y_train[:<span class="dv">3</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>tensor([5, 0, 4])</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>sm_pred[<span class="dv">0</span>,<span class="dv">5</span>],sm_pred[<span class="dv">1</span>,<span class="dv">0</span>],sm_pred[<span class="dv">2</span>,<span class="dv">4</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>(tensor(-2.20, grad_fn=&lt;SelectBackward0&gt;),
+ tensor(-2.37, grad_fn=&lt;SelectBackward0&gt;),
+ tensor(-2.36, grad_fn=&lt;SelectBackward0&gt;))</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>sm_pred[[<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">2</span>], y_train[:<span class="dv">3</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>tensor([-2.20, -2.37, -2.36], grad_fn=&lt;IndexBackward0&gt;)</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> nll(<span class="bu">input</span>, target): <span class="cf">return</span> <span class="op">-</span><span class="bu">input</span>[<span class="bu">range</span>(target.shape[<span class="dv">0</span>]), target].mean()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>loss <span class="op">=</span> nll(sm_pred, y_train)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>loss</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>tensor(2.30, grad_fn=&lt;NegBackward0&gt;)</code></pre>
+</div>
+</div>
+<p>And if we check, we yeah, we go, it’s our results. And so then as we’ve discussed, the cross entropy loss is the sum of the outputs times the log probabalities. And as we discussed, our outputs are one hot and coded or actually they’re just the integers better still. So what we can do is we can I guess I should make that more clear. Actually the just the integer indices so we can simply rewrite that as negative log of the target. So that’s what we had in our Excel. And so how do we do that in PyTorch? So this is quite interesting. There’s A lot of cool things you can do with array indexing in PyTorch in Numpy. So basically they use the same approaches. Let’s take a look. Here is the first three actual values in y_train. They’re five zero and four. Now what we want to do is we want to find in our soft max predictions, we want to get five the fifth prediction in the zeroth row, the zeroth prediction in the first row and the fourth in the index two row. So these are the numbers that we want. This is going to be what we add up for the first few rows of last function. So how do we do that all in one go? Well, here’s a cool trick. See here, I’ve got 0,1,2. If we index using a two lists, we can put here 0, 1,2, and for the second list we can put y_train[:3]. So it’s going to be it’s going to be zero comma 5, 1 comma zero, 2 comma four, which is, as you say, exactly the same thing. So therefore, this is actually giving us what we need for the cross entropy loss. So if we take range of our targets first dimension or zero index dimension, which is all this is and the target and then take the negative of that dot mean, that gives us our cross entropy loss, which is pretty neat in my opinion. All right. So pytorch calls this negative log likelihood loss and that’s all it is. And so if we take the negative log likelihood and so get negative likelihood and we pass that to , the log soft max, then we get the loss. And this particular combination in PyTorch called F.across_entropy. So let’s check. Yep. F.across_entropy gives us exactly the same thing. So that’s cool. So we have now re-implemented cross entropy loss and there’s a lot of confusing things going on there. A lot. And so this is one of those where you should pause the video and go back and look at each step and think not just like, what is it doing, but why is it doing it? And also try in lots of different values yourself to see if you can see what’s going on and then put this aside and test yourself by reimplementing log soft max and nll_loss and cross entropy yourself and compare them to pytouches values. And so that’s the piece of homework for you for this week</p>
+<p>Then use PyTorch’s implementation.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>test_close(F.nll_loss(F.log_softmax(pred, <span class="op">-</span><span class="dv">1</span>), y_train), loss, <span class="fl">1e-3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>In PyTorch, <code>F.log_softmax</code> and <code>F.nll_loss</code> are combined in one optimized function, <code>F.cross_entropy</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>test_close(F.cross_entropy(pred, y_train), loss, <span class="fl">1e-3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="basic-training-loop" class="level2">
+<h2 class="anchored" data-anchor-id="basic-training-loop">Basic training loop</h2>
+<p>So now that we’ve got that we can actually create a training loop. So let’s set our last function to be cross entropy. Let’s create a batch size of 64. And so here’s our first mini batch. Okay, so xb is the x mini batch. It’s going to be from zero up to 64 from our training set, so we can now calculate our predictions. So that’s 64 by ten. So for each of the 64 images in the mini batch, we have ten probability one for each digit. And our y(s) is just a let’s print those out. So there’s our first 64 target values. So these are the actual digits. And so our loss function. So we’re going to start with a bad loss because it’s entirely random at this point. Okay. So for each of the predictions</p>
+<p>we made, so those are our predictions. And so remember, those predictions are a 64 by ten. What did we predict? So for each one of these 64 rows, we have to go in and see where is the highest number. So if we go through here, we can go through each one. Here’s a 0.123 So the highest number is this one. So you got to find the index of the highest number. The function to find the index of the highest number is called argmax. And here it is three. And I guess we could have also written this probably as preds.argmax. Normally you can do them either way. I actually prefer normally to do it this way. Yeah. There’s the same thing. Okay. And the reason we want this is because we want to be at a complete accuracy. We don’t need it for the actual neural net, but we just like to be able to see how we’re going because it’s like it’s a metric. It’s something that we use for understanding. So we take the argmax, we compare it to the actual. So that’s going to give us a bunch of bools. If you turn those into floats, they’ll be ones and zeros. The mean of those flights is the accuracy. So our current accuracy, not surprisingly, is around 10%. It’s 9% because it’s random. That’s what you would expect. Let’s train our first neural net. So we’ll set a learning rate, which are a few epochs. So we’re going to go through each epoch and we’re going to go through from zero up to n.&nbsp;That’s the 50,000 training rows and skipping by 64 the batch size each time. And so we’re going to create a slice that starts at i So starting at zero and goes up 64 unless we’re just got to n And so then we will slice into our training set for the x and for the y to get an x and y batches. We will then calculate our predictions, our loss function, and do it backward.</p>
+<p>So the way I did this originally was I had all of these in in separate cells and I just typed in, you know, i equals zero and then went through one cell at a time calculating each one until they all worked. And so then I can put them in a loop. Okay. So once we’ve got done backward, we can then with torch.no_grad go through each layer and if that’s a layer that has weights, will update them to the existing weights minus the gradients times of learning and then zero out. So the weights and biases for the gradients, the gradients of the weights and biases this underscore means do it in place. So that sets this to zero. So if I run that up, it’s going to run all of them. I guess I skipped. So there we go. It’s finished. So you can see that our accuracy on the training sets have been unfair. But 23 epochs is 97%. So we now have a digit recognizer trains pretty quickly and it’s not terrible at all. So that’s a pretty good starting point. All right. So what we’re going to do next time is we’re going to refactor this training loop to make it dramatically dramatic training, dramatically simple step by step, until eventually we will get it down to where is it. So we’ll get it down to something much, much shorter. And then we’re going to add a validation set to it and a multi processing data loader. And then yeah, we’ll be in a pretty good position, I think, to to start training some more interesting models. All right. Hopefully you found that useful and led some interesting things. And so what I’d really like you to do is at this point, now that you’ve kind of like got all these key basic pieces in place, is to really try to recreate them without picking as much as possible. So, you know, recreate your matrix, multiply, recreate those forward and backward passes, recreate something that steps through layers and even see if you can like recreate the idea of the dot forward and the dot backward. Make sure it’s all in your head really clearly so that you fully understand what’s going on. You know, at the very least, if you don’t have time for that, because that’s a big job, you could pick out a smaller part of that, the piece that you’re more interested in, or you could just go through and look really at these notebooks. So if you go to kernel restart and clear output, it’ll delete all the outputs and try to think like what are the shapes of things? Can you guess what they are, can you check them? And so forth. Okay, Thanks everybody. I hope you have a great week and I will see you next time by.</p>
+<p>Basically the training loop repeats over the following steps: - get the output of the model on a batch of inputs - compare the output to the labels we have and compute a loss - calculate the gradients of the loss with respect to every parameter of the model - update said parameters with those gradients to make them a little bit better</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>loss_func <span class="op">=</span> F.cross_entropy</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>bs<span class="op">=</span><span class="dv">50</span>                  <span class="co"># batch size</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>xb <span class="op">=</span> x_train[<span class="dv">0</span>:bs]     <span class="co"># a mini-batch from x</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>preds <span class="op">=</span> model(xb)      <span class="co"># predictions</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>preds[<span class="dv">0</span>], preds.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>(tensor([-0.09, -0.21, -0.08,  0.10, -0.04,  0.08, -0.04, -0.03,  0.01,  0.06], grad_fn=&lt;SelectBackward0&gt;),
+ torch.Size([50, 10]))</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>yb <span class="op">=</span> y_train[<span class="dv">0</span>:bs]</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>yb</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>tensor([5, 0, 4, 1, 9, 2, 1, 3, 1, 4, 3, 5, 3, 6, 1, 7, 2, 8, 6, 9, 4, 0, 9, 1, 1, 2, 4, 3, 2, 7, 3, 8, 6, 9, 0, 5, 6, 0, 7,
+        6, 1, 8, 7, 9, 3, 9, 8, 5, 9, 3])</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>loss_func(preds, yb)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>tensor(2.30, grad_fn=&lt;NllLossBackward0&gt;)</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>preds.argmax(dim<span class="op">=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>tensor([3, 9, 3, 8, 5, 9, 3, 9, 3, 9, 5, 3, 9, 9, 3, 9, 9, 5, 8, 7, 9, 5, 3, 8, 9, 5, 9, 5, 5, 9, 3, 5, 9, 7, 5, 7, 9, 9, 3,
+        9, 3, 5, 3, 8, 3, 5, 9, 5, 9, 5])</code></pre>
+</div>
+</div>
+<p>::: {.cell 0=‘e’ 1=‘x’ 2=‘p’ 3=‘o’ 4=‘r’ 5=‘t’}</p>
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> accuracy(out, yb): <span class="cf">return</span> (out.argmax(dim<span class="op">=</span><span class="dv">1</span>)<span class="op">==</span>yb).<span class="bu">float</span>().mean()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>:::</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>accuracy(preds, yb)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>tensor(0.08)</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>lr <span class="op">=</span> <span class="fl">0.5</span>   <span class="co"># learning rate</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>epochs <span class="op">=</span> <span class="dv">3</span> <span class="co"># how many epochs to train for</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>::: {.cell 0=‘e’ 1=‘x’ 2=‘p’ 3=‘o’ 4=‘r’ 5=‘t’}</p>
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> report(loss, preds, yb): <span class="bu">print</span>(<span class="ss">f'</span><span class="sc">{</span>loss<span class="sc">:.2f}</span><span class="ss">, </span><span class="sc">{</span>accuracy(preds, yb)<span class="sc">:.2f}</span><span class="ss">'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>:::</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>xb,yb <span class="op">=</span> x_train[:bs],y_train[:bs]</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>preds <span class="op">=</span> model(xb)</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>report(loss_func(preds, yb), preds, yb)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>2.30, 0.08</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> epoch <span class="kw">in</span> <span class="bu">range</span>(epochs):</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">0</span>, n, bs):</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>        s <span class="op">=</span> <span class="bu">slice</span>(i, <span class="bu">min</span>(n,i<span class="op">+</span>bs))</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>        xb,yb <span class="op">=</span> x_train[s],y_train[s]</span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>        preds <span class="op">=</span> model(xb)</span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>        loss <span class="op">=</span> loss_func(preds, yb)</span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>        loss.backward()</span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> torch.no_grad():</span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> l <span class="kw">in</span> model.layers:</span>
+<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> <span class="bu">hasattr</span>(l, <span class="st">'weight'</span>):</span>
+<span id="cb46-11"><a href="#cb46-11" aria-hidden="true" tabindex="-1"></a>                    l.weight <span class="op">-=</span> l.weight.grad <span class="op">*</span> lr</span>
+<span id="cb46-12"><a href="#cb46-12" aria-hidden="true" tabindex="-1"></a>                    l.bias   <span class="op">-=</span> l.bias.grad   <span class="op">*</span> lr</span>
+<span id="cb46-13"><a href="#cb46-13" aria-hidden="true" tabindex="-1"></a>                    l.weight.grad.zero_()</span>
+<span id="cb46-14"><a href="#cb46-14" aria-hidden="true" tabindex="-1"></a>                    l.bias  .grad.zero_()</span>
+<span id="cb46-15"><a href="#cb46-15" aria-hidden="true" tabindex="-1"></a>    report(loss, preds, yb)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>0.12, 0.98
+0.12, 0.94
+0.08, 0.96</code></pre>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
