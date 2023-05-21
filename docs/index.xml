@@ -10,7 +10,868 @@
 <atom:link href="https://bahmansadeghi.com/index.xml" rel="self" type="application/rss+xml"/>
 <description>This is Bahman Sadeghi's personal Blog.</description>
 <generator>quarto-1.1.251</generator>
-<lastBuildDate>Tue, 28 Mar 2023 19:30:00 GMT</lastBuildDate>
+<lastBuildDate>Sat, 01 Apr 2023 19:30:00 GMT</lastBuildDate>
+<item>
+  <title>Writing Stable Diffusion from Scratch 10</title>
+  <dc:creator>Bahman Sadeghi</dc:creator>
+  <link>https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/index.html</link>
+  <description><![CDATA[ 
+
+
+
+<p>All credits goes to fast.ai All mistakes are mine. You should know and practice following after this blog post : 1- Convolution in concept and in coding</p>
+<div class="cell" data-outputid="b852a311-62af-48e0-9630-080f71d445fd">
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="op" style="color: #5E5E5E;">!</span>pip install <span class="op" style="color: #5E5E5E;">-</span>Uqq git<span class="op" style="color: #5E5E5E;">+</span>https:<span class="op" style="color: #5E5E5E;">//</span>github.com<span class="op" style="color: #5E5E5E;">/</span>fastai<span class="op" style="color: #5E5E5E;">/</span>course22p2</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  Preparing metadata (setup.py) ... done
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 474.6/474.6 kB 3.2 MB/s eta 0:00:00
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 158.4/158.4 kB 13.4 MB/s eta 0:00:00
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 934.9/934.9 kB 41.1 MB/s eta 0:00:00
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 42.2/42.2 kB 3.1 MB/s eta 0:00:00
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 69.0 MB/s eta 0:00:00
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 110.5/110.5 kB 8.2 MB/s eta 0:00:00
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 212.5/212.5 kB 9.9 MB/s eta 0:00:00
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 134.3/134.3 kB 9.8 MB/s eta 0:00:00
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.0/1.0 MB 8.4 MB/s eta 0:00:00
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 224.5/224.5 kB 13.4 MB/s eta 0:00:00
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 48.9 MB/s eta 0:00:00
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 87.9/87.9 kB 10.2 MB/s eta 0:00:00
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 114.5/114.5 kB 15.6 MB/s eta 0:00:00
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 268.8/268.8 kB 29.7 MB/s eta 0:00:00
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 149.6/149.6 kB 19.0 MB/s eta 0:00:00
+  Building wheel for miniai (setup.py) ... done</code></pre>
+</div>
+</div>
+<p>Hi, all, and welcome to lesson 15. And what we’re going to endeavor to do today is to create a convolutional auto encoder. And in the process, we will see why doing that well is a tricky thing to do. And time permitting, we will begin to work on a framework, a deep learning framework to make life a lot easier. Not sure how far we’ll get on that today. Time wise, let’s see how we go and get straight into it. So, okay, so today let’s start by talking before we can create a convolutional auto encoder we need to talk about convolutions and and what are they and what are they for.</p>
+<p>Broadly speaking, convolutions are something that allows us to to tell our neural network a little bit about the structure of the problem. That’s going to make it a lot easier for it to solve the problem. And in particular, the structure of our problem is we’re doing things with images. Images are laid out on a grid, a 2D grid with black and white, or a 3 to 4 color or a 44 color video or whatever. And so we would say, you know, there’s a relationship between the pixels going across the pixels going down. They tend to be similar to each other. Differences in those pixels across those dimensions tend to have meaning . Patterns of pixels that appear in different places often represent the same thing. So, for example, a cat in the top left is still a cat, even if it’s in the bottom right. These kinds of this kind of prior information is something that is naturally captured by a convolutional neural network, something that is convolutions. Generally speaking, this is a good thing because it means that we will be able to use less parameters and less computation, and because more of that information about the problem solving is kind of encoded directly into our architecture.Maybe I should plug my other life her. Let me do that as well as how to get enough light. Okay. Let me say yes, there are other architectures that don’t encode that prior information as strongly, such as a multilayer perceptron, which we’ve been looking at so far, or a Transformers network, which we haven’t looked at yet.</p>
+<p>Those kinds of architectures could potentially give us what they do, give us more flexibility and given enough time, compute and data, they could potentially find things that maybe CNN’s would struggle to find. So we’re not always going to use convolutional neural networks, but they’re pretty good starting point and certainly something important to understand. They’re not just used for images. We can also take advantage of one dimensional convolutions for language based tasks. For instance, the convolutions come up a lot. So in this notebook, one thing you’ll notice that might be of interest is we are importing stuff from miniai now. Now miniai is this little library that we’re starting to create and we’re creating nbdev. So we’ve got a miniai training and a mini A.I. data sets. And so if we look, for example, at the Datasets notebook, it starts with something that says that the default export module is called datasets, and some of the cells have a export directive on them. And at the very bottom we had something that called nbdev export. Now what that’s going to do is it’s going to create a file called dataset.py Just here, datasets.py why and it contains that’s those cells that we exported. And why does it why is it called miniai.datasets? That’s because everything miniai is stored in settings.mini and there’s something here. So create a library lib_name called miniai. I you can’t use this library until you install it. Now we haven’t uploaded it to 2 the pipi installable package from the public server, but you can actually install a local directory as if it’s a python module that you’ve kind of installed from the internet. And to do that you say pip install in the usual way, but you say minus e is set to editable and that means set up the current directory as a python module. Well, current directory actually any directory you like. I just put dot to be in the current directory and so you’ll see that’s going to go ahead and actually install all my library. And so after I’ve done that I can now import things from that library, as you say. Okay, so this is just the same as before. We’re going to grab Our MNIST data set and we’re going to create a convolutional neural network on it. So before we do that, we’re going to talk about what are convolutions. And one of my favorite descriptions of convolutions comes from the student in I think was our very first course, Matt Kleinsmith, who wrote this really nice medium article, CNN’s from Different Viewpoints. https://medium.com/impactai/cnns-from-different-viewpoints-fab7f52d159c</p>
+<p>which I’m going to steal from. And here’s the basic idea. I say that this is our image. It’s a three by three image with nine pixels labeled from A-J as capital letters.Now a convolution uses something called a kernel, and a kernel is just another tensor. In this case, it’s a two by two matrix again. So it’s this one. We’re going to have Alpha, beta, gamma Delta as our four values in this convolution now in this kernel. Now one thing I mentioned I can’t remember I’ve said this before is the Greek letters are things that you want to be able to I think I have mentioned this. You want to be able to pronounce them. So if you don’t know how to read these and say what these names are, make sure you head over to Wikipedia or whatever and learn the names of all the Greek letters so that you can because they come up all the time. Okay, so what happens when we apply a convolution with this two by two kernel, two this three by three image? I mean, it doesn’t have to be an image. It’s in this case it’s just a rank two tensor, but it might represent an image. What happens is we take the kernel and we overlay it over the first. They don’t two by two separate like so. And specifically what we do is we match color the color. So the output of this first two by two overlay would be alpha times A plus, beta times B plus gamma times D plus delta times E, and that would yield some value P And that’s going to end up in the top left of a two by two output. So the top right of the two by two output, we’re going to slide. It’s like a slide in window. We’re going to slide our kernel over to here and apply each of our coefficients to these respectively colored squares. And then ditto for the bottom left and then ditto for the bottom right. So we end up with this equation. P, as we discussed, is Alpha A plus, beta B plus eight plus delta E plus some bias term. Q So the top right as you can say, it’s just alpha in this case times B And so we’re just multiplying them together and adding them up. Multiply together at the map, multiplied together and add them up. So we’re basically you can imagine that we’re basically flattening these out into rank one tensors into vectors. And then doing a dot product would be one way of thinking about what’s happening as we slide this kernel over these windows. And so this is called a convolution. So let’s try and create a convolution. So for example, let’s grab our training images and take a look at one and let’s create a three by three kernel. So remember, a kernel is just we’ve already got all appears has a lot of times in computer science and math. We’ve already seen the term kernel to mean a piece of code that we run on a year across lots of parallel kind of virtual devices or potentially in a grid. There’s a similar idea here. We’ve got a computation which is in this case kind of this dot product or something like a dot product, okay, sliding over occurring lots of times over a grid. But it’s yeah, it’s a bit different. So that’s kind of another use of the word kernel.</p>
+<section id="convolutions" class="level1">
+<h1>Convolutions</h1>
+<p>::: {.cell 0=‘e’ 1=‘x’ 2=‘p’ 3=‘o’ 4=‘r’ 5=‘t’}</p>
+<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><span class="im" style="color: #00769E;">import</span> torch</span>
+<span id="cb3-2"><span class="im" style="color: #00769E;">from</span> torch <span class="im" style="color: #00769E;">import</span> nn</span>
+<span id="cb3-3"></span>
+<span id="cb3-4"><span class="im" style="color: #00769E;">from</span> torch.utils.data <span class="im" style="color: #00769E;">import</span> default_collate</span>
+<span id="cb3-5"><span class="im" style="color: #00769E;">from</span> typing <span class="im" style="color: #00769E;">import</span> Mapping</span>
+<span id="cb3-6"></span>
+<span id="cb3-7"><span class="im" style="color: #00769E;">from</span> miniai.training <span class="im" style="color: #00769E;">import</span> <span class="op" style="color: #5E5E5E;">*</span></span>
+<span id="cb3-8"><span class="im" style="color: #00769E;">from</span> miniai.datasets <span class="im" style="color: #00769E;">import</span> <span class="op" style="color: #5E5E5E;">*</span></span></code></pre></div>
+<p>:::</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><span class="im" style="color: #00769E;">import</span> pickle,gzip,math,os,time,shutil,torch,matplotlib <span class="im" style="color: #00769E;">as</span> mpl, numpy <span class="im" style="color: #00769E;">as</span> np</span>
+<span id="cb4-2"><span class="im" style="color: #00769E;">import</span> pandas <span class="im" style="color: #00769E;">as</span> pd,matplotlib.pyplot <span class="im" style="color: #00769E;">as</span> plt</span>
+<span id="cb4-3"><span class="im" style="color: #00769E;">from</span> pathlib <span class="im" style="color: #00769E;">import</span> Path</span>
+<span id="cb4-4"><span class="im" style="color: #00769E;">from</span> torch <span class="im" style="color: #00769E;">import</span> tensor,nn</span>
+<span id="cb4-5"><span class="im" style="color: #00769E;">import</span> torch.nn.functional <span class="im" style="color: #00769E;">as</span> F</span>
+<span id="cb4-6"><span class="im" style="color: #00769E;">from</span> torch.utils.data <span class="im" style="color: #00769E;">import</span> DataLoader</span>
+<span id="cb4-7"><span class="im" style="color: #00769E;">from</span> typing <span class="im" style="color: #00769E;">import</span> Mapping</span></code></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><span class="im" style="color: #00769E;">from</span> fastcore.test <span class="im" style="color: #00769E;">import</span> test_close</span>
+<span id="cb5-2"></span>
+<span id="cb5-3">mpl.rcParams[<span class="st" style="color: #20794D;">'image.cmap'</span>] <span class="op" style="color: #5E5E5E;">=</span> <span class="st" style="color: #20794D;">'gray'</span></span>
+<span id="cb5-4">torch.set_printoptions(precision<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">2</span>, linewidth<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">125</span>, sci_mode<span class="op" style="color: #5E5E5E;">=</span><span class="va" style="color: #111111;">False</span>)</span>
+<span id="cb5-5">np.set_printoptions(precision<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">2</span>, linewidth<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">125</span>)</span>
+<span id="cb5-6"></span>
+<span id="cb5-7">MNIST_URL<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">'https://github.com/mnielsen/neural-networks-and-deep-learning/blob/master/data/mnist.pkl.gz?raw=true'</span></span>
+<span id="cb5-8">path_data <span class="op" style="color: #5E5E5E;">=</span> Path(<span class="st" style="color: #20794D;">'data'</span>)</span>
+<span id="cb5-9">path_data.mkdir(exist_ok<span class="op" style="color: #5E5E5E;">=</span><span class="va" style="color: #111111;">True</span>)</span>
+<span id="cb5-10">path_gz <span class="op" style="color: #5E5E5E;">=</span> path_data<span class="op" style="color: #5E5E5E;">/</span><span class="st" style="color: #20794D;">'mnist.pkl.gz'</span></span></code></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><span class="im" style="color: #00769E;">from</span> urllib.request <span class="im" style="color: #00769E;">import</span> urlretrieve</span>
+<span id="cb6-2"><span class="cf" style="color: #003B4F;">if</span> <span class="kw" style="color: #003B4F;">not</span> path_gz.exists(): urlretrieve(MNIST_URL, path_gz)</span></code></pre></div>
+</div>
+<div class="cell" data-outputid="0903d0e9-fe4f-4385-e858-c5af78285165">
+<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><span class="op" style="color: #5E5E5E;">!</span>ls <span class="op" style="color: #5E5E5E;">-</span>l data</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>total 16656
+-rw-r--r-- 1 root root 17051982 May 21 12:38 mnist.pkl.gz</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><span class="cf" style="color: #003B4F;">with</span> gzip.<span class="bu" style="color: null;">open</span>(path_gz, <span class="st" style="color: #20794D;">'rb'</span>) <span class="im" style="color: #00769E;">as</span> f: ((x_train, y_train), (x_valid, y_valid), _) <span class="op" style="color: #5E5E5E;">=</span> pickle.load(f, encoding<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">'latin-1'</span>)</span>
+<span id="cb9-2">x_train, y_train, x_valid, y_valid <span class="op" style="color: #5E5E5E;">=</span> <span class="bu" style="color: null;">map</span>(tensor, [x_train, y_train, x_valid, y_valid])</span>
+<span id="cb9-3"></span></code></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1">mpl.rcParams[<span class="st" style="color: #20794D;">'image.cmap'</span>] <span class="op" style="color: #5E5E5E;">=</span> <span class="st" style="color: #20794D;">'gray'</span></span></code></pre></div>
+</div>
+<p>In the context of an image, a feature is a visually distinctive attribute. For example, the number 7 is characterized by a horizontal edge near the top of the digit, and a top-right to bottom-left diagonal edge underneath that.</p>
+<p>It turns out that finding the edges in an image is a very common task in computer vision, and is surprisingly straightforward. To do it, we use a <em>convolution</em>. A convolution requires nothing more than multiplication, and addition.</p>
+<section id="understanding-the-convolution-equations" class="level3">
+<h3 class="anchored" data-anchor-id="understanding-the-convolution-equations">Understanding the Convolution Equations</h3>
+<p>To explain the math behind convolutions, fast.ai student Matt Kleinsmith came up with the very clever idea of showing <a href="https://medium.com/impactai/cnns-from-different-viewpoints-fab7f52d159c">CNNs from different viewpoints</a>.</p>
+<p>Here’s the input:</p>
+<p><img alt="The image" width="75" src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/https:/github.com/fastai/course22p2/blob/master/nbs/images/att_00032.png?raw=1"></p>
+<p>Here’s our kernel:</p>
+<p><img alt="The kernel" width="55" src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/https:/github.com/fastai/course22p2/blob/master/nbs/images/att_00033.png?raw=1"></p>
+<p>Since the filter fits in the image four times, we have four results:</p>
+<p><img alt="The activations" width="52" src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/https:/github.com/fastai/course22p2/blob/master/nbs/images/att_00034.png?raw=1"></p>
+<p><img alt="Applying the kernel" width="366" caption="Applying the kernel" id="apply_kernel" src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/https:/github.com/fastai/course22p2/blob/master/nbs/images/att_00035.png?raw=1"></p>
+<p><img alt="The equation" width="436" caption="The equation" id="eq_view" src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/https:/github.com/fastai/course22p2/blob/master/nbs/images/att_00036.png?raw=1"></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1">x_imgs <span class="op" style="color: #5E5E5E;">=</span> x_train.view(<span class="op" style="color: #5E5E5E;">-</span><span class="dv" style="color: #AD0000;">1</span>,<span class="dv" style="color: #AD0000;">28</span>,<span class="dv" style="color: #AD0000;">28</span>)</span>
+<span id="cb11-2">xv_imgs <span class="op" style="color: #5E5E5E;">=</span> x_valid.view(<span class="op" style="color: #5E5E5E;">-</span><span class="dv" style="color: #AD0000;">1</span>,<span class="dv" style="color: #AD0000;">28</span>,<span class="dv" style="color: #AD0000;">28</span>)</span></code></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1">mpl.rcParams[<span class="st" style="color: #20794D;">'figure.dpi'</span>] <span class="op" style="color: #5E5E5E;">=</span> <span class="dv" style="color: #AD0000;">30</span></span></code></pre></div>
+</div>
+<div class="cell" data-outputid="f2ce2149-e88e-416c-927d-b1abb836111d">
+<div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1">im3 <span class="op" style="color: #5E5E5E;">=</span> x_imgs[<span class="dv" style="color: #AD0000;">7</span>]</span>
+<span id="cb13-2">show_image(im3)<span class="op" style="color: #5E5E5E;">;</span></span></code></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/index_files/figure-html/cell-12-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1">top_edge <span class="op" style="color: #5E5E5E;">=</span> tensor([[<span class="op" style="color: #5E5E5E;">-</span><span class="dv" style="color: #AD0000;">1</span>,<span class="op" style="color: #5E5E5E;">-</span><span class="dv" style="color: #AD0000;">1</span>,<span class="op" style="color: #5E5E5E;">-</span><span class="dv" style="color: #AD0000;">1</span>],</span>
+<span id="cb14-2">                   [ <span class="dv" style="color: #AD0000;">0</span>, <span class="dv" style="color: #AD0000;">0</span>, <span class="dv" style="color: #AD0000;">0</span>],</span>
+<span id="cb14-3">                   [ <span class="dv" style="color: #AD0000;">1</span>, <span class="dv" style="color: #AD0000;">1</span>, <span class="dv" style="color: #AD0000;">1</span>]]).<span class="bu" style="color: null;">float</span>()</span></code></pre></div>
+</div>
+<p>We’re going to call this our kernel (because that’s what fancy computer vision researchers call these).</p>
+<div class="cell" data-outputid="7de2403d-161c-4b6f-e41b-6fb91e2cb809">
+<div class="sourceCode cell-code" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1">show_image(top_edge, noframe<span class="op" style="color: #5E5E5E;">=</span><span class="va" style="color: #111111;">False</span>)<span class="op" style="color: #5E5E5E;">;</span></span></code></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/index_files/figure-html/cell-14-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>The filter will take any window of size 3×3 in our images, and if we name the pixel values like this:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%5Cbegin%7Bmatrix%7D%20a1%20&amp;%20a2%20&amp;%20a3%20%5C%5C%20a4%20&amp;%20a5%20&amp;%20a6%20%5C%5C%20a7%20&amp;%20a8%20&amp;%20a9%20%5Cend%7Bmatrix%7D"></p>
+<p>it will return <img src="https://latex.codecogs.com/png.latex?-a1-a2-a3+a7+a8+a9">.</p>
+<p>So in this case, a kernel is a in this case it’s going to be a rank two tensor. And so let’s create a kernel with these values in the three by three matrix rank, two tensor and we could draw what that looks like. Not surprisingly, this looks like a bunch of lines perhaps. Okay, so what would happen if we slide this over , nine pixels over this 28 by 28? Well, what’s going to happen is if we’ve got some the top left, for example, three by three section has these names, then we’re going to end up with negative a1 because the top three or negative, right. Negative a1, minus a2 minus a3 the next to exist zero. So that won’t do anything. And then plus a7 plus a8 plus a9. Why is that interesting? That’s interesting. Well, let’s try here. What I’ve done here is I’ve grabbed just the first 13 rows and first 23 columns of our image, and I’m actually showing the numbers and also using Gray kind of conditional formatting, if you like, or the equivalent in PANDAS to show this top bit. So we’re looking at just this top bit. So what happens if we take rows three, four and five? Remember, this is not inclusive, right? So it’s rows three, four and five columns 14,15 , 16 , So we’re looking at this these three here. What’s that going to give us if we multiply it by this kernel, it gives us a fairly large positive value because the three that we have negatives on is the top, right? Well, they’re all zero. And the three that we have positives on there or close to one. So we end up with quite a large number. What about the same columns but four rows 7,8,9 Here the top is all positive and the bottom is all zero. So that means that we’re going to get a lot of negative terms. And not surprisingly, that’s exactly what we see. This if we do this kind of dot product equivalent, which all you need a numpad to do, that is just an element. My multiplication followed by a sum, right? So that’s going to be a quite a large negative number. And so perhaps you’re saying what this is doing and maybe you got a hint from the name of the tensor. So we created it, something that is going to find the top edge. All right. So this one is a top edge. So it’s a positive and this one is a bottom edge. So it’s a negative. So we would like to apply that this kernel to every single three by three section in here. So we could do that by creating a little apply kernel function that takes some particular row in some particular column and some particular tensor as a kernel. And does that multiplication that some that we just saw. So for example, we could replicate this one by calling apply kernel and this here is the center of that three by three grid area.</p>
+<div class="cell" data-outputid="5b49405f-3010-47e1-90b6-5330c0c6599b">
+<div class="sourceCode cell-code" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1">df <span class="op" style="color: #5E5E5E;">=</span> pd.DataFrame(im3[:<span class="dv" style="color: #AD0000;">13</span>,:<span class="dv" style="color: #AD0000;">23</span>])</span>
+<span id="cb16-2">df.style.<span class="bu" style="color: null;">format</span>(precision<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">2</span>).set_properties(<span class="op" style="color: #5E5E5E;">**</span>{<span class="st" style="color: #20794D;">'font-size'</span>:<span class="st" style="color: #20794D;">'7pt'</span>}).background_gradient(<span class="st" style="color: #20794D;">'Greys'</span>)</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="17">
+
+
+<table id="T_8149e" class="dataframe table table-sm table-striped">
+  <thead>
+    <tr>
+      <th class="blank level0">&nbsp;</th>
+      <th id="T_8149e_level0_col0" class="col_heading level0 col0">0</th>
+      <th id="T_8149e_level0_col1" class="col_heading level0 col1">1</th>
+      <th id="T_8149e_level0_col2" class="col_heading level0 col2">2</th>
+      <th id="T_8149e_level0_col3" class="col_heading level0 col3">3</th>
+      <th id="T_8149e_level0_col4" class="col_heading level0 col4">4</th>
+      <th id="T_8149e_level0_col5" class="col_heading level0 col5">5</th>
+      <th id="T_8149e_level0_col6" class="col_heading level0 col6">6</th>
+      <th id="T_8149e_level0_col7" class="col_heading level0 col7">7</th>
+      <th id="T_8149e_level0_col8" class="col_heading level0 col8">8</th>
+      <th id="T_8149e_level0_col9" class="col_heading level0 col9">9</th>
+      <th id="T_8149e_level0_col10" class="col_heading level0 col10">10</th>
+      <th id="T_8149e_level0_col11" class="col_heading level0 col11">11</th>
+      <th id="T_8149e_level0_col12" class="col_heading level0 col12">12</th>
+      <th id="T_8149e_level0_col13" class="col_heading level0 col13">13</th>
+      <th id="T_8149e_level0_col14" class="col_heading level0 col14">14</th>
+      <th id="T_8149e_level0_col15" class="col_heading level0 col15">15</th>
+      <th id="T_8149e_level0_col16" class="col_heading level0 col16">16</th>
+      <th id="T_8149e_level0_col17" class="col_heading level0 col17">17</th>
+      <th id="T_8149e_level0_col18" class="col_heading level0 col18">18</th>
+      <th id="T_8149e_level0_col19" class="col_heading level0 col19">19</th>
+      <th id="T_8149e_level0_col20" class="col_heading level0 col20">20</th>
+      <th id="T_8149e_level0_col21" class="col_heading level0 col21">21</th>
+      <th id="T_8149e_level0_col22" class="col_heading level0 col22">22</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_8149e_level0_row0" class="row_heading level0 row0">0</th>
+      <td id="T_8149e_row0_col0" class="data row0 col0">0.00</td>
+      <td id="T_8149e_row0_col1" class="data row0 col1">0.00</td>
+      <td id="T_8149e_row0_col2" class="data row0 col2">0.00</td>
+      <td id="T_8149e_row0_col3" class="data row0 col3">0.00</td>
+      <td id="T_8149e_row0_col4" class="data row0 col4">0.00</td>
+      <td id="T_8149e_row0_col5" class="data row0 col5">0.00</td>
+      <td id="T_8149e_row0_col6" class="data row0 col6">0.00</td>
+      <td id="T_8149e_row0_col7" class="data row0 col7">0.00</td>
+      <td id="T_8149e_row0_col8" class="data row0 col8">0.00</td>
+      <td id="T_8149e_row0_col9" class="data row0 col9">0.00</td>
+      <td id="T_8149e_row0_col10" class="data row0 col10">0.00</td>
+      <td id="T_8149e_row0_col11" class="data row0 col11">0.00</td>
+      <td id="T_8149e_row0_col12" class="data row0 col12">0.00</td>
+      <td id="T_8149e_row0_col13" class="data row0 col13">0.00</td>
+      <td id="T_8149e_row0_col14" class="data row0 col14">0.00</td>
+      <td id="T_8149e_row0_col15" class="data row0 col15">0.00</td>
+      <td id="T_8149e_row0_col16" class="data row0 col16">0.00</td>
+      <td id="T_8149e_row0_col17" class="data row0 col17">0.00</td>
+      <td id="T_8149e_row0_col18" class="data row0 col18">0.00</td>
+      <td id="T_8149e_row0_col19" class="data row0 col19">0.00</td>
+      <td id="T_8149e_row0_col20" class="data row0 col20">0.00</td>
+      <td id="T_8149e_row0_col21" class="data row0 col21">0.00</td>
+      <td id="T_8149e_row0_col22" class="data row0 col22">0.00</td>
+    </tr>
+    <tr>
+      <th id="T_8149e_level0_row1" class="row_heading level0 row1">1</th>
+      <td id="T_8149e_row1_col0" class="data row1 col0">0.00</td>
+      <td id="T_8149e_row1_col1" class="data row1 col1">0.00</td>
+      <td id="T_8149e_row1_col2" class="data row1 col2">0.00</td>
+      <td id="T_8149e_row1_col3" class="data row1 col3">0.00</td>
+      <td id="T_8149e_row1_col4" class="data row1 col4">0.00</td>
+      <td id="T_8149e_row1_col5" class="data row1 col5">0.00</td>
+      <td id="T_8149e_row1_col6" class="data row1 col6">0.00</td>
+      <td id="T_8149e_row1_col7" class="data row1 col7">0.00</td>
+      <td id="T_8149e_row1_col8" class="data row1 col8">0.00</td>
+      <td id="T_8149e_row1_col9" class="data row1 col9">0.00</td>
+      <td id="T_8149e_row1_col10" class="data row1 col10">0.00</td>
+      <td id="T_8149e_row1_col11" class="data row1 col11">0.00</td>
+      <td id="T_8149e_row1_col12" class="data row1 col12">0.00</td>
+      <td id="T_8149e_row1_col13" class="data row1 col13">0.00</td>
+      <td id="T_8149e_row1_col14" class="data row1 col14">0.00</td>
+      <td id="T_8149e_row1_col15" class="data row1 col15">0.00</td>
+      <td id="T_8149e_row1_col16" class="data row1 col16">0.00</td>
+      <td id="T_8149e_row1_col17" class="data row1 col17">0.00</td>
+      <td id="T_8149e_row1_col18" class="data row1 col18">0.00</td>
+      <td id="T_8149e_row1_col19" class="data row1 col19">0.00</td>
+      <td id="T_8149e_row1_col20" class="data row1 col20">0.00</td>
+      <td id="T_8149e_row1_col21" class="data row1 col21">0.00</td>
+      <td id="T_8149e_row1_col22" class="data row1 col22">0.00</td>
+    </tr>
+    <tr>
+      <th id="T_8149e_level0_row2" class="row_heading level0 row2">2</th>
+      <td id="T_8149e_row2_col0" class="data row2 col0">0.00</td>
+      <td id="T_8149e_row2_col1" class="data row2 col1">0.00</td>
+      <td id="T_8149e_row2_col2" class="data row2 col2">0.00</td>
+      <td id="T_8149e_row2_col3" class="data row2 col3">0.00</td>
+      <td id="T_8149e_row2_col4" class="data row2 col4">0.00</td>
+      <td id="T_8149e_row2_col5" class="data row2 col5">0.00</td>
+      <td id="T_8149e_row2_col6" class="data row2 col6">0.00</td>
+      <td id="T_8149e_row2_col7" class="data row2 col7">0.00</td>
+      <td id="T_8149e_row2_col8" class="data row2 col8">0.00</td>
+      <td id="T_8149e_row2_col9" class="data row2 col9">0.00</td>
+      <td id="T_8149e_row2_col10" class="data row2 col10">0.00</td>
+      <td id="T_8149e_row2_col11" class="data row2 col11">0.00</td>
+      <td id="T_8149e_row2_col12" class="data row2 col12">0.00</td>
+      <td id="T_8149e_row2_col13" class="data row2 col13">0.00</td>
+      <td id="T_8149e_row2_col14" class="data row2 col14">0.00</td>
+      <td id="T_8149e_row2_col15" class="data row2 col15">0.00</td>
+      <td id="T_8149e_row2_col16" class="data row2 col16">0.00</td>
+      <td id="T_8149e_row2_col17" class="data row2 col17">0.00</td>
+      <td id="T_8149e_row2_col18" class="data row2 col18">0.00</td>
+      <td id="T_8149e_row2_col19" class="data row2 col19">0.00</td>
+      <td id="T_8149e_row2_col20" class="data row2 col20">0.00</td>
+      <td id="T_8149e_row2_col21" class="data row2 col21">0.00</td>
+      <td id="T_8149e_row2_col22" class="data row2 col22">0.00</td>
+    </tr>
+    <tr>
+      <th id="T_8149e_level0_row3" class="row_heading level0 row3">3</th>
+      <td id="T_8149e_row3_col0" class="data row3 col0">0.00</td>
+      <td id="T_8149e_row3_col1" class="data row3 col1">0.00</td>
+      <td id="T_8149e_row3_col2" class="data row3 col2">0.00</td>
+      <td id="T_8149e_row3_col3" class="data row3 col3">0.00</td>
+      <td id="T_8149e_row3_col4" class="data row3 col4">0.00</td>
+      <td id="T_8149e_row3_col5" class="data row3 col5">0.00</td>
+      <td id="T_8149e_row3_col6" class="data row3 col6">0.00</td>
+      <td id="T_8149e_row3_col7" class="data row3 col7">0.00</td>
+      <td id="T_8149e_row3_col8" class="data row3 col8">0.00</td>
+      <td id="T_8149e_row3_col9" class="data row3 col9">0.00</td>
+      <td id="T_8149e_row3_col10" class="data row3 col10">0.00</td>
+      <td id="T_8149e_row3_col11" class="data row3 col11">0.00</td>
+      <td id="T_8149e_row3_col12" class="data row3 col12">0.00</td>
+      <td id="T_8149e_row3_col13" class="data row3 col13">0.00</td>
+      <td id="T_8149e_row3_col14" class="data row3 col14">0.00</td>
+      <td id="T_8149e_row3_col15" class="data row3 col15">0.00</td>
+      <td id="T_8149e_row3_col16" class="data row3 col16">0.00</td>
+      <td id="T_8149e_row3_col17" class="data row3 col17">0.00</td>
+      <td id="T_8149e_row3_col18" class="data row3 col18">0.00</td>
+      <td id="T_8149e_row3_col19" class="data row3 col19">0.00</td>
+      <td id="T_8149e_row3_col20" class="data row3 col20">0.00</td>
+      <td id="T_8149e_row3_col21" class="data row3 col21">0.00</td>
+      <td id="T_8149e_row3_col22" class="data row3 col22">0.00</td>
+    </tr>
+    <tr>
+      <th id="T_8149e_level0_row4" class="row_heading level0 row4">4</th>
+      <td id="T_8149e_row4_col0" class="data row4 col0">0.00</td>
+      <td id="T_8149e_row4_col1" class="data row4 col1">0.00</td>
+      <td id="T_8149e_row4_col2" class="data row4 col2">0.00</td>
+      <td id="T_8149e_row4_col3" class="data row4 col3">0.00</td>
+      <td id="T_8149e_row4_col4" class="data row4 col4">0.00</td>
+      <td id="T_8149e_row4_col5" class="data row4 col5">0.00</td>
+      <td id="T_8149e_row4_col6" class="data row4 col6">0.00</td>
+      <td id="T_8149e_row4_col7" class="data row4 col7">0.00</td>
+      <td id="T_8149e_row4_col8" class="data row4 col8">0.00</td>
+      <td id="T_8149e_row4_col9" class="data row4 col9">0.00</td>
+      <td id="T_8149e_row4_col10" class="data row4 col10">0.00</td>
+      <td id="T_8149e_row4_col11" class="data row4 col11">0.00</td>
+      <td id="T_8149e_row4_col12" class="data row4 col12">0.00</td>
+      <td id="T_8149e_row4_col13" class="data row4 col13">0.00</td>
+      <td id="T_8149e_row4_col14" class="data row4 col14">0.00</td>
+      <td id="T_8149e_row4_col15" class="data row4 col15">0.00</td>
+      <td id="T_8149e_row4_col16" class="data row4 col16">0.00</td>
+      <td id="T_8149e_row4_col17" class="data row4 col17">0.00</td>
+      <td id="T_8149e_row4_col18" class="data row4 col18">0.00</td>
+      <td id="T_8149e_row4_col19" class="data row4 col19">0.00</td>
+      <td id="T_8149e_row4_col20" class="data row4 col20">0.00</td>
+      <td id="T_8149e_row4_col21" class="data row4 col21">0.00</td>
+      <td id="T_8149e_row4_col22" class="data row4 col22">0.00</td>
+    </tr>
+    <tr>
+      <th id="T_8149e_level0_row5" class="row_heading level0 row5">5</th>
+      <td id="T_8149e_row5_col0" class="data row5 col0">0.00</td>
+      <td id="T_8149e_row5_col1" class="data row5 col1">0.00</td>
+      <td id="T_8149e_row5_col2" class="data row5 col2">0.00</td>
+      <td id="T_8149e_row5_col3" class="data row5 col3">0.00</td>
+      <td id="T_8149e_row5_col4" class="data row5 col4">0.00</td>
+      <td id="T_8149e_row5_col5" class="data row5 col5">0.00</td>
+      <td id="T_8149e_row5_col6" class="data row5 col6">0.00</td>
+      <td id="T_8149e_row5_col7" class="data row5 col7">0.00</td>
+      <td id="T_8149e_row5_col8" class="data row5 col8">0.00</td>
+      <td id="T_8149e_row5_col9" class="data row5 col9">0.00</td>
+      <td id="T_8149e_row5_col10" class="data row5 col10">0.00</td>
+      <td id="T_8149e_row5_col11" class="data row5 col11">0.15</td>
+      <td id="T_8149e_row5_col12" class="data row5 col12">0.17</td>
+      <td id="T_8149e_row5_col13" class="data row5 col13">0.41</td>
+      <td id="T_8149e_row5_col14" class="data row5 col14">1.00</td>
+      <td id="T_8149e_row5_col15" class="data row5 col15">0.99</td>
+      <td id="T_8149e_row5_col16" class="data row5 col16">0.99</td>
+      <td id="T_8149e_row5_col17" class="data row5 col17">0.99</td>
+      <td id="T_8149e_row5_col18" class="data row5 col18">0.99</td>
+      <td id="T_8149e_row5_col19" class="data row5 col19">0.99</td>
+      <td id="T_8149e_row5_col20" class="data row5 col20">0.68</td>
+      <td id="T_8149e_row5_col21" class="data row5 col21">0.02</td>
+      <td id="T_8149e_row5_col22" class="data row5 col22">0.00</td>
+    </tr>
+    <tr>
+      <th id="T_8149e_level0_row6" class="row_heading level0 row6">6</th>
+      <td id="T_8149e_row6_col0" class="data row6 col0">0.00</td>
+      <td id="T_8149e_row6_col1" class="data row6 col1">0.00</td>
+      <td id="T_8149e_row6_col2" class="data row6 col2">0.00</td>
+      <td id="T_8149e_row6_col3" class="data row6 col3">0.00</td>
+      <td id="T_8149e_row6_col4" class="data row6 col4">0.00</td>
+      <td id="T_8149e_row6_col5" class="data row6 col5">0.00</td>
+      <td id="T_8149e_row6_col6" class="data row6 col6">0.00</td>
+      <td id="T_8149e_row6_col7" class="data row6 col7">0.00</td>
+      <td id="T_8149e_row6_col8" class="data row6 col8">0.00</td>
+      <td id="T_8149e_row6_col9" class="data row6 col9">0.17</td>
+      <td id="T_8149e_row6_col10" class="data row6 col10">0.54</td>
+      <td id="T_8149e_row6_col11" class="data row6 col11">0.88</td>
+      <td id="T_8149e_row6_col12" class="data row6 col12">0.88</td>
+      <td id="T_8149e_row6_col13" class="data row6 col13">0.98</td>
+      <td id="T_8149e_row6_col14" class="data row6 col14">0.99</td>
+      <td id="T_8149e_row6_col15" class="data row6 col15">0.98</td>
+      <td id="T_8149e_row6_col16" class="data row6 col16">0.98</td>
+      <td id="T_8149e_row6_col17" class="data row6 col17">0.98</td>
+      <td id="T_8149e_row6_col18" class="data row6 col18">0.98</td>
+      <td id="T_8149e_row6_col19" class="data row6 col19">0.98</td>
+      <td id="T_8149e_row6_col20" class="data row6 col20">0.98</td>
+      <td id="T_8149e_row6_col21" class="data row6 col21">0.62</td>
+      <td id="T_8149e_row6_col22" class="data row6 col22">0.05</td>
+    </tr>
+    <tr>
+      <th id="T_8149e_level0_row7" class="row_heading level0 row7">7</th>
+      <td id="T_8149e_row7_col0" class="data row7 col0">0.00</td>
+      <td id="T_8149e_row7_col1" class="data row7 col1">0.00</td>
+      <td id="T_8149e_row7_col2" class="data row7 col2">0.00</td>
+      <td id="T_8149e_row7_col3" class="data row7 col3">0.00</td>
+      <td id="T_8149e_row7_col4" class="data row7 col4">0.00</td>
+      <td id="T_8149e_row7_col5" class="data row7 col5">0.00</td>
+      <td id="T_8149e_row7_col6" class="data row7 col6">0.00</td>
+      <td id="T_8149e_row7_col7" class="data row7 col7">0.00</td>
+      <td id="T_8149e_row7_col8" class="data row7 col8">0.00</td>
+      <td id="T_8149e_row7_col9" class="data row7 col9">0.70</td>
+      <td id="T_8149e_row7_col10" class="data row7 col10">0.98</td>
+      <td id="T_8149e_row7_col11" class="data row7 col11">0.98</td>
+      <td id="T_8149e_row7_col12" class="data row7 col12">0.98</td>
+      <td id="T_8149e_row7_col13" class="data row7 col13">0.98</td>
+      <td id="T_8149e_row7_col14" class="data row7 col14">0.99</td>
+      <td id="T_8149e_row7_col15" class="data row7 col15">0.98</td>
+      <td id="T_8149e_row7_col16" class="data row7 col16">0.98</td>
+      <td id="T_8149e_row7_col17" class="data row7 col17">0.98</td>
+      <td id="T_8149e_row7_col18" class="data row7 col18">0.98</td>
+      <td id="T_8149e_row7_col19" class="data row7 col19">0.98</td>
+      <td id="T_8149e_row7_col20" class="data row7 col20">0.98</td>
+      <td id="T_8149e_row7_col21" class="data row7 col21">0.98</td>
+      <td id="T_8149e_row7_col22" class="data row7 col22">0.23</td>
+    </tr>
+    <tr>
+      <th id="T_8149e_level0_row8" class="row_heading level0 row8">8</th>
+      <td id="T_8149e_row8_col0" class="data row8 col0">0.00</td>
+      <td id="T_8149e_row8_col1" class="data row8 col1">0.00</td>
+      <td id="T_8149e_row8_col2" class="data row8 col2">0.00</td>
+      <td id="T_8149e_row8_col3" class="data row8 col3">0.00</td>
+      <td id="T_8149e_row8_col4" class="data row8 col4">0.00</td>
+      <td id="T_8149e_row8_col5" class="data row8 col5">0.00</td>
+      <td id="T_8149e_row8_col6" class="data row8 col6">0.00</td>
+      <td id="T_8149e_row8_col7" class="data row8 col7">0.00</td>
+      <td id="T_8149e_row8_col8" class="data row8 col8">0.00</td>
+      <td id="T_8149e_row8_col9" class="data row8 col9">0.43</td>
+      <td id="T_8149e_row8_col10" class="data row8 col10">0.98</td>
+      <td id="T_8149e_row8_col11" class="data row8 col11">0.98</td>
+      <td id="T_8149e_row8_col12" class="data row8 col12">0.90</td>
+      <td id="T_8149e_row8_col13" class="data row8 col13">0.52</td>
+      <td id="T_8149e_row8_col14" class="data row8 col14">0.52</td>
+      <td id="T_8149e_row8_col15" class="data row8 col15">0.52</td>
+      <td id="T_8149e_row8_col16" class="data row8 col16">0.52</td>
+      <td id="T_8149e_row8_col17" class="data row8 col17">0.74</td>
+      <td id="T_8149e_row8_col18" class="data row8 col18">0.98</td>
+      <td id="T_8149e_row8_col19" class="data row8 col19">0.98</td>
+      <td id="T_8149e_row8_col20" class="data row8 col20">0.98</td>
+      <td id="T_8149e_row8_col21" class="data row8 col21">0.98</td>
+      <td id="T_8149e_row8_col22" class="data row8 col22">0.23</td>
+    </tr>
+    <tr>
+      <th id="T_8149e_level0_row9" class="row_heading level0 row9">9</th>
+      <td id="T_8149e_row9_col0" class="data row9 col0">0.00</td>
+      <td id="T_8149e_row9_col1" class="data row9 col1">0.00</td>
+      <td id="T_8149e_row9_col2" class="data row9 col2">0.00</td>
+      <td id="T_8149e_row9_col3" class="data row9 col3">0.00</td>
+      <td id="T_8149e_row9_col4" class="data row9 col4">0.00</td>
+      <td id="T_8149e_row9_col5" class="data row9 col5">0.00</td>
+      <td id="T_8149e_row9_col6" class="data row9 col6">0.00</td>
+      <td id="T_8149e_row9_col7" class="data row9 col7">0.00</td>
+      <td id="T_8149e_row9_col8" class="data row9 col8">0.00</td>
+      <td id="T_8149e_row9_col9" class="data row9 col9">0.02</td>
+      <td id="T_8149e_row9_col10" class="data row9 col10">0.11</td>
+      <td id="T_8149e_row9_col11" class="data row9 col11">0.11</td>
+      <td id="T_8149e_row9_col12" class="data row9 col12">0.09</td>
+      <td id="T_8149e_row9_col13" class="data row9 col13">0.00</td>
+      <td id="T_8149e_row9_col14" class="data row9 col14">0.00</td>
+      <td id="T_8149e_row9_col15" class="data row9 col15">0.00</td>
+      <td id="T_8149e_row9_col16" class="data row9 col16">0.00</td>
+      <td id="T_8149e_row9_col17" class="data row9 col17">0.05</td>
+      <td id="T_8149e_row9_col18" class="data row9 col18">0.88</td>
+      <td id="T_8149e_row9_col19" class="data row9 col19">0.98</td>
+      <td id="T_8149e_row9_col20" class="data row9 col20">0.98</td>
+      <td id="T_8149e_row9_col21" class="data row9 col21">0.67</td>
+      <td id="T_8149e_row9_col22" class="data row9 col22">0.03</td>
+    </tr>
+    <tr>
+      <th id="T_8149e_level0_row10" class="row_heading level0 row10">10</th>
+      <td id="T_8149e_row10_col0" class="data row10 col0">0.00</td>
+      <td id="T_8149e_row10_col1" class="data row10 col1">0.00</td>
+      <td id="T_8149e_row10_col2" class="data row10 col2">0.00</td>
+      <td id="T_8149e_row10_col3" class="data row10 col3">0.00</td>
+      <td id="T_8149e_row10_col4" class="data row10 col4">0.00</td>
+      <td id="T_8149e_row10_col5" class="data row10 col5">0.00</td>
+      <td id="T_8149e_row10_col6" class="data row10 col6">0.00</td>
+      <td id="T_8149e_row10_col7" class="data row10 col7">0.00</td>
+      <td id="T_8149e_row10_col8" class="data row10 col8">0.00</td>
+      <td id="T_8149e_row10_col9" class="data row10 col9">0.00</td>
+      <td id="T_8149e_row10_col10" class="data row10 col10">0.00</td>
+      <td id="T_8149e_row10_col11" class="data row10 col11">0.00</td>
+      <td id="T_8149e_row10_col12" class="data row10 col12">0.00</td>
+      <td id="T_8149e_row10_col13" class="data row10 col13">0.00</td>
+      <td id="T_8149e_row10_col14" class="data row10 col14">0.00</td>
+      <td id="T_8149e_row10_col15" class="data row10 col15">0.00</td>
+      <td id="T_8149e_row10_col16" class="data row10 col16">0.00</td>
+      <td id="T_8149e_row10_col17" class="data row10 col17">0.33</td>
+      <td id="T_8149e_row10_col18" class="data row10 col18">0.95</td>
+      <td id="T_8149e_row10_col19" class="data row10 col19">0.98</td>
+      <td id="T_8149e_row10_col20" class="data row10 col20">0.98</td>
+      <td id="T_8149e_row10_col21" class="data row10 col21">0.56</td>
+      <td id="T_8149e_row10_col22" class="data row10 col22">0.00</td>
+    </tr>
+    <tr>
+      <th id="T_8149e_level0_row11" class="row_heading level0 row11">11</th>
+      <td id="T_8149e_row11_col0" class="data row11 col0">0.00</td>
+      <td id="T_8149e_row11_col1" class="data row11 col1">0.00</td>
+      <td id="T_8149e_row11_col2" class="data row11 col2">0.00</td>
+      <td id="T_8149e_row11_col3" class="data row11 col3">0.00</td>
+      <td id="T_8149e_row11_col4" class="data row11 col4">0.00</td>
+      <td id="T_8149e_row11_col5" class="data row11 col5">0.00</td>
+      <td id="T_8149e_row11_col6" class="data row11 col6">0.00</td>
+      <td id="T_8149e_row11_col7" class="data row11 col7">0.00</td>
+      <td id="T_8149e_row11_col8" class="data row11 col8">0.00</td>
+      <td id="T_8149e_row11_col9" class="data row11 col9">0.00</td>
+      <td id="T_8149e_row11_col10" class="data row11 col10">0.00</td>
+      <td id="T_8149e_row11_col11" class="data row11 col11">0.00</td>
+      <td id="T_8149e_row11_col12" class="data row11 col12">0.00</td>
+      <td id="T_8149e_row11_col13" class="data row11 col13">0.00</td>
+      <td id="T_8149e_row11_col14" class="data row11 col14">0.00</td>
+      <td id="T_8149e_row11_col15" class="data row11 col15">0.00</td>
+      <td id="T_8149e_row11_col16" class="data row11 col16">0.34</td>
+      <td id="T_8149e_row11_col17" class="data row11 col17">0.74</td>
+      <td id="T_8149e_row11_col18" class="data row11 col18">0.98</td>
+      <td id="T_8149e_row11_col19" class="data row11 col19">0.98</td>
+      <td id="T_8149e_row11_col20" class="data row11 col20">0.98</td>
+      <td id="T_8149e_row11_col21" class="data row11 col21">0.05</td>
+      <td id="T_8149e_row11_col22" class="data row11 col22">0.00</td>
+    </tr>
+    <tr>
+      <th id="T_8149e_level0_row12" class="row_heading level0 row12">12</th>
+      <td id="T_8149e_row12_col0" class="data row12 col0">0.00</td>
+      <td id="T_8149e_row12_col1" class="data row12 col1">0.00</td>
+      <td id="T_8149e_row12_col2" class="data row12 col2">0.00</td>
+      <td id="T_8149e_row12_col3" class="data row12 col3">0.00</td>
+      <td id="T_8149e_row12_col4" class="data row12 col4">0.00</td>
+      <td id="T_8149e_row12_col5" class="data row12 col5">0.00</td>
+      <td id="T_8149e_row12_col6" class="data row12 col6">0.00</td>
+      <td id="T_8149e_row12_col7" class="data row12 col7">0.00</td>
+      <td id="T_8149e_row12_col8" class="data row12 col8">0.00</td>
+      <td id="T_8149e_row12_col9" class="data row12 col9">0.00</td>
+      <td id="T_8149e_row12_col10" class="data row12 col10">0.00</td>
+      <td id="T_8149e_row12_col11" class="data row12 col11">0.00</td>
+      <td id="T_8149e_row12_col12" class="data row12 col12">0.00</td>
+      <td id="T_8149e_row12_col13" class="data row12 col13">0.00</td>
+      <td id="T_8149e_row12_col14" class="data row12 col14">0.36</td>
+      <td id="T_8149e_row12_col15" class="data row12 col15">0.83</td>
+      <td id="T_8149e_row12_col16" class="data row12 col16">0.96</td>
+      <td id="T_8149e_row12_col17" class="data row12 col17">0.98</td>
+      <td id="T_8149e_row12_col18" class="data row12 col18">0.98</td>
+      <td id="T_8149e_row12_col19" class="data row12 col19">0.98</td>
+      <td id="T_8149e_row12_col20" class="data row12 col20">0.80</td>
+      <td id="T_8149e_row12_col21" class="data row12 col21">0.04</td>
+      <td id="T_8149e_row12_col22" class="data row12 col22">0.00</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+<div class="cell" data-outputid="e38e70ad-d9af-4fae-c273-767644bd22a6">
+<div class="sourceCode cell-code" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1">(im3[<span class="dv" style="color: #AD0000;">3</span>:<span class="dv" style="color: #AD0000;">6</span>,<span class="dv" style="color: #AD0000;">14</span>:<span class="dv" style="color: #AD0000;">17</span>] <span class="op" style="color: #5E5E5E;">*</span> top_edge).<span class="bu" style="color: null;">sum</span>()</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="18">
+<pre><code>tensor(2.97)</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="f793a80c-0f3b-4a61-98a8-7af3a5f4222d">
+<div class="sourceCode cell-code" id="cb19" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1">(im3[<span class="dv" style="color: #AD0000;">7</span>:<span class="dv" style="color: #AD0000;">10</span>,<span class="dv" style="color: #AD0000;">14</span>:<span class="dv" style="color: #AD0000;">17</span>] <span class="op" style="color: #5E5E5E;">*</span> top_edge).<span class="bu" style="color: null;">sum</span>()</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="19">
+<pre><code>tensor(-2.96)</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><span class="kw" style="color: #003B4F;">def</span> apply_kernel(row, col, kernel): <span class="cf" style="color: #003B4F;">return</span> (im3[row<span class="op" style="color: #5E5E5E;">-</span><span class="dv" style="color: #AD0000;">1</span>:row<span class="op" style="color: #5E5E5E;">+</span><span class="dv" style="color: #AD0000;">2</span>,col<span class="op" style="color: #5E5E5E;">-</span><span class="dv" style="color: #AD0000;">1</span>:col<span class="op" style="color: #5E5E5E;">+</span><span class="dv" style="color: #AD0000;">2</span>] <span class="op" style="color: #5E5E5E;">*</span> kernel).<span class="bu" style="color: null;">sum</span>()</span></code></pre></div>
+</div>
+<p>So now we could apply that kernel to every one of the three by three windows in this 28 by 28 image. So we’re going to be sliding over like this red bit sliding over here, but we’ve actually got a 28 by 28 input, not just a five by five input. So to get all of the coordinates, let’s just simplify it. To do this five by five, we can go, we can create a list comprehension. We can take i through every value in range five and then for each of those we can take a j for every value in range Five. And so if we just look at that tuple, you can say we get a list of lists containing all of those coordinates. So this is a list comprehension in list comprehension which when you first say it may be surprising or confusing, but it’s a really helpful idiom and I certainly recommend getting used to it. Now, what we’re going to do is we’re not just going to create this tuple, but we’re actually going to call applay kernel for each of those. So if we go through from 1 to 27, we’ll actually 1 to 26 because 27 is exclusive. So we’re going to go through everything from 1 to 26 and then for each of those go through from 1 to 26 again and call apply kernel and that’s going to give us the result of applying that convolutional kernel to every one of those coordinates. And there’s a result and you can see what it’s done as we hoped is it is highlighting the top edges. So yeah, you might find that kind of surprising that it’s that that easy to do this kind of image processing. We’re literally just doing an element wise multiplication and a sum for each window. Okay. So,that is called a convolution. So we can do another convolution. This time we could do one with the left edge tensor.As You can see looks just a rotated version or transpose version I guess, of our top edge tensor. Here’s what it looks like. And so if we apply that kernel, so this time we’re going to apply the left edge kernel and so notice here that we’re actually passing in a function, right? We’re passing in a tensor , It’s just a it’s just a tensor actually. So we’re going to pass in the left edge tensor for the same list Comprehension in a list comprehension. And this time we’re getting back on the left edge as it’s highlighting all of the left edges in the digit. So yeah, this is basically what’s happening here is that a two by two can be looped over an image creating these outputs. Now you’ll see here that in the process of doing so, we are losing the outermost pixels of our image. We’ll learn about how to fix that later, but just for now, notice that that as we are putting in our three by three through for example, in this five by five, there’s only 1 two 3 places that we can put it going across, not five places, because we need some kind of edge.</p>
+<div class="cell" data-outputid="1f5d3cfb-b523-4396-e0d6-b0cbea5c472a">
+<div class="sourceCode cell-code" id="cb22" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1">apply_kernel(<span class="dv" style="color: #AD0000;">4</span>,<span class="dv" style="color: #AD0000;">15</span>,top_edge)</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="21">
+<pre><code>tensor(2.97)</code></pre>
+</div>
+</div>
+<p><img src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/https:/github.com/fastai/course22p2/blob/master/nbs/images/chapter9_nopadconv.svg?raw=1" id="nopad_conv" caption="Applying a kernel across a grid" alt="Applying a kernel across a grid" width="400"></p>
+<div class="cell" data-outputid="cec6479b-2895-4325-ed96-f28b42f64db0">
+<div class="sourceCode cell-code" id="cb24" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1">[[(i,j) <span class="cf" style="color: #003B4F;">for</span> j <span class="kw" style="color: #003B4F;">in</span> <span class="bu" style="color: null;">range</span>(<span class="dv" style="color: #AD0000;">5</span>)] <span class="cf" style="color: #003B4F;">for</span> i <span class="kw" style="color: #003B4F;">in</span> <span class="bu" style="color: null;">range</span>(<span class="dv" style="color: #AD0000;">5</span>)]</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="22">
+<pre><code>[[(0, 0), (0, 1), (0, 2), (0, 3), (0, 4)],
+ [(1, 0), (1, 1), (1, 2), (1, 3), (1, 4)],
+ [(2, 0), (2, 1), (2, 2), (2, 3), (2, 4)],
+ [(3, 0), (3, 1), (3, 2), (3, 3), (3, 4)],
+ [(4, 0), (4, 1), (4, 2), (4, 3), (4, 4)]]</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="b35d1be3-2cf4-4576-b2b3-1387212dfed0">
+<div class="sourceCode cell-code" id="cb26" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1">rng <span class="op" style="color: #5E5E5E;">=</span> <span class="bu" style="color: null;">range</span>(<span class="dv" style="color: #AD0000;">1</span>,<span class="dv" style="color: #AD0000;">27</span>)</span>
+<span id="cb26-2">top_edge3 <span class="op" style="color: #5E5E5E;">=</span> tensor([[apply_kernel(i,j,top_edge) <span class="cf" style="color: #003B4F;">for</span> j <span class="kw" style="color: #003B4F;">in</span> rng] <span class="cf" style="color: #003B4F;">for</span> i <span class="kw" style="color: #003B4F;">in</span> rng])</span>
+<span id="cb26-3">show_image(top_edge3)<span class="op" style="color: #5E5E5E;">;</span></span></code></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/index_files/figure-html/cell-21-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1">left_edge <span class="op" style="color: #5E5E5E;">=</span> tensor([[<span class="op" style="color: #5E5E5E;">-</span><span class="dv" style="color: #AD0000;">1</span>,<span class="dv" style="color: #AD0000;">0</span>,<span class="dv" style="color: #AD0000;">1</span>],</span>
+<span id="cb27-2">                    [<span class="op" style="color: #5E5E5E;">-</span><span class="dv" style="color: #AD0000;">1</span>,<span class="dv" style="color: #AD0000;">0</span>,<span class="dv" style="color: #AD0000;">1</span>],</span>
+<span id="cb27-3">                    [<span class="op" style="color: #5E5E5E;">-</span><span class="dv" style="color: #AD0000;">1</span>,<span class="dv" style="color: #AD0000;">0</span>,<span class="dv" style="color: #AD0000;">1</span>]]).<span class="bu" style="color: null;">float</span>()</span></code></pre></div>
+</div>
+<div class="cell" data-outputid="8aae7015-2063-46db-efba-bbcef32a152c">
+<div class="sourceCode cell-code" id="cb28" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1">show_image(left_edge, noframe<span class="op" style="color: #5E5E5E;">=</span><span class="va" style="color: #111111;">False</span>)<span class="op" style="color: #5E5E5E;">;</span></span></code></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/index_files/figure-html/cell-23-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<div class="cell" data-outputid="4e2d99e4-7bec-4036-a982-ce3a47e6a382">
+<div class="sourceCode cell-code" id="cb29" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1">left_edge3 <span class="op" style="color: #5E5E5E;">=</span> tensor([[apply_kernel(i,j,left_edge) <span class="cf" style="color: #003B4F;">for</span> j <span class="kw" style="color: #003B4F;">in</span> rng] <span class="cf" style="color: #003B4F;">for</span> i <span class="kw" style="color: #003B4F;">in</span> rng])</span>
+<span id="cb29-2">show_image(left_edge3)<span class="op" style="color: #5E5E5E;">;</span></span></code></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/index_files/figure-html/cell-24-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p><img alt="Result of applying a 3×3 kernel to a 4×4 image" width="782" caption="Result of applying a 3×3 kernel to a 4×4 image (courtesy of Vincent Dumoulin and Francesco Visin)" id="three_ex_four_conv" src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/https:/github.com/fastai/course22p2/blob/master/nbs/images/att_00028.png?raw=1"></p>
+<p>Oops. Somebody pointed out that this is not quite the same. It should be. It should be moved. Now, check this out. If you had an option or alt as you highlight, you can copy, you can copy and paste whole columns at once. Isn’t that cool? Yeah. We go. All right. It doesn’t change the output match, of course, but it’s nice to have a consistent. All right, So that’s cool. That’s a convolution. And hopefully if you remember back to kind of the Zeiler and Fergus pictures from from lesson one, you might recognize that the kind of first layer of a convolutional network is often looking for kind of edges and gradients and things like that. And this is how, this is how it does it. And then the convolutions on top of convolutions with nonlinear activations between them can combine those into into curves or corners or stuff like that and so on and so forth. Okay, so how do we do this quickly? Because currently this is going to be super, super slow during this in Python. So one of the very earliest or probably the earliest publicly available general purpose deep learning GPU accelerator tape running thing I saw it was called Cafe that was created by somebody called Young Teenager and he actually described what happened where where cafe how cafe went about implementing a fast conversation on a GPU. And basically he said, well I had two months to do it and I had to finish my thesis. And so I ended up doing something where I said, Well, there was some other code out there. Could I ask who you might have come across him and, and Hinton set up a little start up which, which Google bought and that kind of became the start of Google’s deep learning, the Google brain. Basically. Codrescu had all this fancy stuff in in his library, but Yuncheng , Oh, I didn’t know how to do all that stuff. So I said, Well, I already know how to multiply matrices, so maybe I can convert a convolution into a matrix multiplication. And so that I became known as im2col,</p>
+<p>im2col a way of converting a convolution into a matrix. Multiply. And so actually, I don’t know if a suspect young teenager kind of accidentally reinvented it because it actually had been around for a while, even at the point that he was writing his thesis. I believe. So it was actually this is this is the place I believe it was created in this paper. https://hal.inria.fr/inria-00112631/document</p>
+<p>So that was in 2006, which is a while ago. And so this is actually from that paper. And what they describe is, is let’s say you are putting this two by two kernel over this, three by three bit of an image. So here you’ve got this this window needs to match to this part of this window. Right. What you could do is you could unwrap this to 1 2,1 2.</p>
+<p>unroll to here. One, two, one, two. To unroll it like so and you could unroll the kernel here. Yeah. So this is one, two, one one. So this is bit is here. One, two, one one and then you can unroll the kernel one, one, two, two, to here. One, one, two, two. And then once they, they’ve been moved, flattened out and moved in that way and then you’re doing exactly the same thing for this next patch here.2, 0 , 1 , 3 flatten out and put it here if you basically take those kernels and flatten them out in this format, then you end up with a matrix multiply. If you multiply this matrix by this matrix, you’ll end up with the output that you want from the convolution. So this is a basically a way of unrolling your kernels and your input features into matrices such as when you do the matrix multiply, you get the right answer. So it’s kind of a nifty trick. And so that is called im2col and I guess we’re kind of chatting a little bit. Implementing that is kind of boring is just a bunch of copying, intensive manipulation. So I actually haven’t done it. Instead, I’ve linked to a numpy implementation, which is here. And it also part of it is this get indices which is here. And as you can see, it’s a little bit tedious with repeats and tiles and re shapes and whatnot. So I’m not going to call it homework, but if you want to practice your tensor indexing manipulation skills, try creating a PyTorch version from scratch. I’ve got to admit I didn’t bother. Instead,</p>
+<p>I used the one that’s built into PyTorch and in PyTorch it’s called unfold. So if we take our image and PyTorch expects there to be a batch axis and dimension and a channel dimension. So we’ll add two unit leading dimensions to it, then we can unfold our input for a three by three and that will give us a 9 by 676 input. And so then we can take that We can take that and then we will make our we will take it out kernal and just flatten it out into a vector. So here changes the shape and minus one just says dump everything into this dimension. So that’s going to create a nine long vector length, nine vector. And so now we can do the matrix multiply just like they’ve done here of the kernel matrix. That’s our weights by the unrolled input features. And so that gives us a 676 long. We can then view that as 26 by 26 and we get back as we hoped, our left edge tensor result. And so this is yeah, this is how we can kind of from scratch create a a better implementation of convolutions. The reason I’m cheating I’m allowed to cheat here is because we did actually create convolution from scratch.</p>
+<p>So I think that’s fair, but it’s cool that we can kind of hack out GPU optimized version in the same way that the kind of original Deep Learning library did. So if we use apply kernel, we get nearly 9 milliseconds. If we use unfold with matrix multiply we get 20 microseconds. So that’s what about 400 times faster. So that’s pretty cool. Now of course we don’t have to use unfold and matrix multiply because PyTorch has a copy of covv2d so we can run that. And that interestingly is about the same speed at least on GPU. But this would also work on on, on GPU just as well. Yeah. I’m not sure this will always be the case in this case. It’s a pretty small image. I haven’t experimented a whole lot to see whereabouts. There’s a big difference in space between these. Obviously I always just use conv2d that if there’s some more tricky convolution you need to do with some weird thing around channels or dimensions or something. You can always try this unfold trick. It’s nice to know it’s there. I think. So we could do the same thing for diagonal edges. So here’s our diagonal edge kernel or the other diagonal. So if we just grab the first 16 images on our whole batch with all of our kernels at once. So this is a nice optimized thing that we can do. And you end up with your 26 by 26, you’ve got your four kernels and you’ve got your 16 images. And so that’s summarized here. So that’s generally what we’re doing to get good GPU acceleration as we’re doing a bunch of kernels and a bunch of images all at once across across all of their pixels. And so yeah, we go, that’s what happens when we take a look at our various kernels for a particular image left edge, I guess, top edge and then diagonal, top left and top right. Okay, so that is optimized convolutions on and that works just as well in CPU or GPU.</p>
+<p>Obviously GPU will be faster if you have one. Now how do we deal with the problem that way? Losing one pixel on each side? What we can do is we can add something called padding and padding. What we basically do is rather than starting our window here, we start at a right over here and we actually would be up one as well. And so these three on the left here, we just take the input for each of those as zero. So we’re basically just assuming that they’re all zero. I mean, that’s there’s other options we could choose. We could assume they’re the same as the one next to them</p>
+<p>There’s various things we can do, but the simplest and the one we normally do is just assume that they’re zero. So now so let’s say, for example, this is this is called one pixel padding.</p>
+<p>we’re just going to treated at zero.</p>
+<p>So generally odd numbered edge sized kernels are easier to deal with to make sure you end up with the same thing. You start with. Okay, so yeah. So as it says here with you’ve got an odd numbered size case by case size kernel, then case truncate divide two, that’s what segments will give you the right size. And so another trick you can do is you don’t always have to just move your window across by one each time. You could move it by a different amount. Each time the amount you move it by is called the stride. So, for example, here’s a case of doing a stride two so stride two padding one. So we start out here and then we jump across two and then we jump across to then then we go to the next tray.</p>
+<p>So that’s called a stride to convolution stride to convoluted ends are handy because they actually reduce the dimensionality of your input by a factor of two. And that’s actually what we want to do a lot. For example, with an auto encoder, we want to do that. And in fact, for most classification architectures we do exactly that. We keep on reducing the kind of the grid size by a factor of two again and again and again, using stride to compilations with padding of one. So that strides in padding. So let’s go ahead and create a convnet using these approaches. So we’re going to put get our size of our training set. This is all the same as before a number of categories than per digit size of our hidden layer. So right previously with our sequential linear models with our MLPs, we basically went from size from the number of pixels to the number of hidden, and then relu and then the number of hidden to the number of outputs. So here’s the equivalent with a convolution.</p>
+</section>
+<section id="convolutions-in-pytorch" class="level3">
+<h3 class="anchored" data-anchor-id="convolutions-in-pytorch">Convolutions in PyTorch</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><span class="im" style="color: #00769E;">import</span> torch.nn.functional <span class="im" style="color: #00769E;">as</span> F</span>
+<span id="cb30-2"><span class="im" style="color: #00769E;">import</span> torch</span></code></pre></div>
+</div>
+<p>What to do if you have <a href="https://github.com/Yangqing/caffe/wiki/Convolution-in-Caffe:-a-memo">2 months to complete your thesis</a>? Use <a href="https://hal.inria.fr/inria-00112631/">im2col</a>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/attachment:image.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">image.png</figcaption><p></p>
+</figure>
+</div>
+<p>Here’s a sample <a href="https://github.com/3outeille/CNNumpy/blob/5394f13e7ed67a808a3e39fd381f168825d65ff5/src/fast/utils.py#L360">numpy implementation</a>.</p>
+<div class="cell" data-outputid="19d0c347-285c-4829-83a2-b607a7d0afb8">
+<div class="sourceCode cell-code" id="cb31" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1">inp <span class="op" style="color: #5E5E5E;">=</span> im3[<span class="va" style="color: #111111;">None</span>,<span class="va" style="color: #111111;">None</span>,:,:].<span class="bu" style="color: null;">float</span>()</span>
+<span id="cb31-2">inp_unf <span class="op" style="color: #5E5E5E;">=</span> F.unfold(inp, (<span class="dv" style="color: #AD0000;">3</span>,<span class="dv" style="color: #AD0000;">3</span>))[<span class="dv" style="color: #AD0000;">0</span>]</span>
+<span id="cb31-3">inp_unf.shape</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="28">
+<pre><code>torch.Size([9, 676])</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="a0535ac9-78fd-412f-c6b7-16e9100b1a04">
+<div class="sourceCode cell-code" id="cb33" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1">w <span class="op" style="color: #5E5E5E;">=</span> left_edge.view(<span class="op" style="color: #5E5E5E;">-</span><span class="dv" style="color: #AD0000;">1</span>)</span>
+<span id="cb33-2">w.shape</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="29">
+<pre><code>torch.Size([9])</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="67a14ba5-3dec-4587-833b-611065521262">
+<div class="sourceCode cell-code" id="cb35" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1">out_unf <span class="op" style="color: #5E5E5E;">=</span> w<span class="op" style="color: #5E5E5E;">@</span>inp_unf</span>
+<span id="cb35-2">out_unf.shape</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="30">
+<pre><code>torch.Size([676])</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="211652dd-b550-4950-ae53-154250e5c28f">
+<div class="sourceCode cell-code" id="cb37" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1">out <span class="op" style="color: #5E5E5E;">=</span> out_unf.view(<span class="dv" style="color: #AD0000;">26</span>,<span class="dv" style="color: #AD0000;">26</span>)</span>
+<span id="cb37-2">show_image(out)<span class="op" style="color: #5E5E5E;">;</span></span></code></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/index_files/figure-html/cell-29-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<div class="cell" data-outputid="a9998896-dbd2-4d4e-cbec-0ec040098fed">
+<div class="sourceCode cell-code" id="cb38" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><span class="op" style="color: #5E5E5E;">%</span>timeit <span class="op" style="color: #5E5E5E;">-</span>n <span class="dv" style="color: #AD0000;">1</span> tensor([[apply_kernel(i,j,left_edge) <span class="cf" style="color: #003B4F;">for</span> j <span class="kw" style="color: #003B4F;">in</span> rng] <span class="cf" style="color: #003B4F;">for</span> i <span class="kw" style="color: #003B4F;">in</span> rng])<span class="op" style="color: #5E5E5E;">;</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>13.5 ms ± 353 µs per loop (mean ± std. dev. of 7 runs, 1 loop each)</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="978740b9-dde5-47fa-eb15-e1854bc7b8da">
+<div class="sourceCode cell-code" id="cb40" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><span class="op" style="color: #5E5E5E;">%</span>timeit <span class="op" style="color: #5E5E5E;">-</span>n <span class="dv" style="color: #AD0000;">100</span> (w<span class="op" style="color: #5E5E5E;">@</span>F.unfold(inp, (<span class="dv" style="color: #AD0000;">3</span>,<span class="dv" style="color: #AD0000;">3</span>))[<span class="dv" style="color: #AD0000;">0</span>]).view(<span class="dv" style="color: #AD0000;">26</span>,<span class="dv" style="color: #AD0000;">26</span>)<span class="op" style="color: #5E5E5E;">;</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>56.2 µs ± 16.4 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="58edb76c-4062-4305-ca7c-2fa316566c04">
+<div class="sourceCode cell-code" id="cb42" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><span class="op" style="color: #5E5E5E;">%</span>timeit <span class="op" style="color: #5E5E5E;">-</span>n <span class="dv" style="color: #AD0000;">100</span> F.conv2d(inp, left_edge[<span class="va" style="color: #111111;">None</span>,<span class="va" style="color: #111111;">None</span>])</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>The slowest run took 7.39 times longer than the fastest. This could mean that an intermediate result is being cached.
+25.4 µs ± 29.3 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb44" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1">diag1_edge <span class="op" style="color: #5E5E5E;">=</span> tensor([[ <span class="dv" style="color: #AD0000;">0</span>,<span class="op" style="color: #5E5E5E;">-</span><span class="dv" style="color: #AD0000;">1</span>, <span class="dv" style="color: #AD0000;">1</span>],</span>
+<span id="cb44-2">                     [<span class="op" style="color: #5E5E5E;">-</span><span class="dv" style="color: #AD0000;">1</span>, <span class="dv" style="color: #AD0000;">1</span>, <span class="dv" style="color: #AD0000;">0</span>],</span>
+<span id="cb44-3">                     [ <span class="dv" style="color: #AD0000;">1</span>, <span class="dv" style="color: #AD0000;">0</span>, <span class="dv" style="color: #AD0000;">0</span>]]).<span class="bu" style="color: null;">float</span>()</span></code></pre></div>
+</div>
+<div class="cell" data-outputid="1eb2d5a9-e34d-4e71-d226-8955e0167aa0">
+<div class="sourceCode cell-code" id="cb45" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1">show_image(diag1_edge, noframe<span class="op" style="color: #5E5E5E;">=</span><span class="va" style="color: #111111;">False</span>)<span class="op" style="color: #5E5E5E;">;</span></span></code></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/index_files/figure-html/cell-34-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb46" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1">diag2_edge <span class="op" style="color: #5E5E5E;">=</span> tensor([[ <span class="dv" style="color: #AD0000;">1</span>,<span class="op" style="color: #5E5E5E;">-</span><span class="dv" style="color: #AD0000;">1</span>, <span class="dv" style="color: #AD0000;">0</span>],</span>
+<span id="cb46-2">                     [ <span class="dv" style="color: #AD0000;">0</span>, <span class="dv" style="color: #AD0000;">1</span>,<span class="op" style="color: #5E5E5E;">-</span><span class="dv" style="color: #AD0000;">1</span>],</span>
+<span id="cb46-3">                     [ <span class="dv" style="color: #AD0000;">0</span>, <span class="dv" style="color: #AD0000;">0</span>, <span class="dv" style="color: #AD0000;">1</span>]]).<span class="bu" style="color: null;">float</span>()</span></code></pre></div>
+</div>
+<div class="cell" data-outputid="dc83ab5c-e690-4abb-e511-c291817e6a1c">
+<div class="sourceCode cell-code" id="cb47" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb47-1">show_image(diag2_edge, noframe<span class="op" style="color: #5E5E5E;">=</span><span class="va" style="color: #111111;">False</span>)<span class="op" style="color: #5E5E5E;">;</span></span></code></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/index_files/figure-html/cell-36-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<div class="cell" data-outputid="e08baded-ece6-41ec-e728-cffa1cef4586">
+<div class="sourceCode cell-code" id="cb48" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1">xb <span class="op" style="color: #5E5E5E;">=</span> x_imgs[:<span class="dv" style="color: #AD0000;">16</span>][:,<span class="va" style="color: #111111;">None</span>]</span>
+<span id="cb48-2">xb.shape</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="39">
+<pre><code>torch.Size([16, 1, 28, 28])</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="ec4860c2-0569-4021-c979-452d2ff0e4c0">
+<div class="sourceCode cell-code" id="cb50" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb50-1">edge_kernels <span class="op" style="color: #5E5E5E;">=</span> torch.stack([left_edge, top_edge, diag1_edge, diag2_edge])[:,<span class="va" style="color: #111111;">None</span>]</span>
+<span id="cb50-2">edge_kernels.shape</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="40">
+<pre><code>torch.Size([4, 1, 3, 3])</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="ddb2f48e-745d-4521-a7b2-03594f410e00">
+<div class="sourceCode cell-code" id="cb52" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb52-1">batch_features <span class="op" style="color: #5E5E5E;">=</span> F.conv2d(xb, edge_kernels)</span>
+<span id="cb52-2">batch_features.shape</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="41">
+<pre><code>torch.Size([16, 4, 26, 26])</code></pre>
+</div>
+</div>
+<p>The output shape shows we gave 64 images in the mini-batch, 4 kernels, and 26×26 edge maps (we started with 28×28 images, but lost one pixel from each side as discussed earlier). We can see we get the same results as when we did this manually:</p>
+<div class="cell" data-outputid="27a38693-30d4-49d8-a9b4-1dea3505f967">
+<div class="sourceCode cell-code" id="cb54" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb54-1">img0 <span class="op" style="color: #5E5E5E;">=</span> xb[<span class="dv" style="color: #AD0000;">1</span>,<span class="dv" style="color: #AD0000;">0</span>]</span>
+<span id="cb54-2">show_image(img0)<span class="op" style="color: #5E5E5E;">;</span></span></code></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/index_files/figure-html/cell-40-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<div class="cell" data-outputid="a2dfeac7-886c-4233-c2dc-4d4dce74175a">
+<div class="sourceCode cell-code" id="cb55" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb55-1">show_images([batch_features[<span class="dv" style="color: #AD0000;">1</span>,i] <span class="cf" style="color: #003B4F;">for</span> i <span class="kw" style="color: #003B4F;">in</span> <span class="bu" style="color: null;">range</span>(<span class="dv" style="color: #AD0000;">4</span>)])</span></code></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/index_files/figure-html/cell-41-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+</section>
+<section id="strides-and-padding" class="level3">
+<h3 class="anchored" data-anchor-id="strides-and-padding">Strides and Padding</h3>
+<p>With appropriate padding, we can ensure that the output activation map is the same size as the original image.</p>
+<p><img src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/https:/github.com/fastai/course22p2/blob/master/nbs/images/chapter9_padconv.svg?raw=1" id="pad_conv" caption="A convolution with padding" alt="A convolution with padding" width="600"></p>
+<p>With a 5×5 input, 4×4 kernel, and 2 pixels of padding, we end up with a 6×6 activation map.</p>
+<p><img alt="A 4×4 kernel with 5×5 input and 2 pixels of padding" width="783" caption="A 4×4 kernel with 5×5 input and 2 pixels of padding (courtesy of Vincent Dumoulin and Francesco Visin)" id="four_by_five_conv" src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/https:/github.com/fastai/course22p2/blob/master/nbs/images/att_00029.png?raw=1"></p>
+<p>If we add a kernel of size <code>ks</code> by <code>ks</code> (with <code>ks</code> an odd number), the necessary padding on each side to keep the same shape is <code>ks//2</code>.</p>
+<p>We could move over two pixels after each kernel application. This is known as a <em>stride-2</em> convolution.</p>
+<p><img alt="A 3×3 kernel with 5×5 input, stride-2 convolution, and 1 pixel of padding" width="774" caption="A 3×3 kernel with 5×5 input, stride-2 convolution, and 1 pixel of padding (courtesy of Vincent Dumoulin and Francesco Visin)" id="three_by_five_conv" src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/https:/github.com/fastai/course22p2/blob/master/nbs/images/att_00030.png?raw=1"></p>
+<p>Now the problem is that you can’t just do that because the output is not now ten probabilities for each item in our batch, but it’s ten probabilities for each item in our batch for each of 28 by 28 pixels, because we don’t even have a stride or anything. So you can’t just use the same simple approach that we had for MLP. We have to be a bit more careful. So to make life easier, let’s create a little conv function that does a conv2d with a stride of two. Optionally followed by an activation. So if act is true, we will add in every relu activation. So this is going to either return conv2d or a little sequential containing a conv2d followed by a relu. And so now we can create a cnn from, you know, from scratch. That’s the sequential model. And so since activation is true by default, this is going to take out 28 by 28 image starting with one channel and creating an output of four channels. So this is the number of in this is the number of filters. Sometimes we’ll say filters to describe the number of kind of channels that our convolution has. That’s the number of outputs. And it’s very similar to the idea of the number of outputs in a linear layer. This is the number of outputs in your convolution. So what I like to do when I create stuff like this is I add a little comment just to remind myself what is my grid size after this. So I had a 28 by 28 input. So then I’ve then put it through a stride to conv, so the output of this will be 14 by 14. So then we’ll do the same thing again, but this time we’ll go from a four channel input to an eight channel output and then from 8 to 16. So by this point we’re now down to a 4x4 and then down to a two by two. And then finally we’re down to a one by one. So on the very last layer, we want add an activation and the very last layer is going to create ten outputs. And since we’re now down to a one by one, we can just call flatten and that’s going to remove those unnecessary unit axes. So if we take that pop mini batch through it, we end up with exactly what we want a 16 by ten. So for each of our 16 images, we’ve got ten probabilities of each possible digit. So if we take our training set and make it into 28 by 28 images and we do the same thing for our validation set, and then we create two data sets, one for each which are called train data set and valid data set. And we’re now going to train this on the GPU.</p>
+</section>
+<section id="creating-the-cnn" class="level2">
+<h2 class="anchored" data-anchor-id="creating-the-cnn">Creating the CNN</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb56" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb56-1">n,m <span class="op" style="color: #5E5E5E;">=</span> x_train.shape</span>
+<span id="cb56-2">c <span class="op" style="color: #5E5E5E;">=</span> y_train.<span class="bu" style="color: null;">max</span>()<span class="op" style="color: #5E5E5E;">+</span><span class="dv" style="color: #AD0000;">1</span></span>
+<span id="cb56-3">nh <span class="op" style="color: #5E5E5E;">=</span> <span class="dv" style="color: #AD0000;">50</span></span></code></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb57" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb57-1">model <span class="op" style="color: #5E5E5E;">=</span> nn.Sequential(nn.Linear(m,nh), nn.ReLU(), nn.Linear(nh,<span class="dv" style="color: #AD0000;">10</span>))</span></code></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb58" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb58-1">broken_cnn <span class="op" style="color: #5E5E5E;">=</span> nn.Sequential(</span>
+<span id="cb58-2">    nn.Conv2d(<span class="dv" style="color: #AD0000;">1</span>,<span class="dv" style="color: #AD0000;">30</span>, kernel_size<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">3</span>, padding<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">1</span>),</span>
+<span id="cb58-3">    nn.ReLU(),</span>
+<span id="cb58-4">    nn.Conv2d(<span class="dv" style="color: #AD0000;">30</span>,<span class="dv" style="color: #AD0000;">10</span>, kernel_size<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">3</span>, padding<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">1</span>)</span>
+<span id="cb58-5">)</span></code></pre></div>
+</div>
+<div class="cell" data-outputid="2cf902a1-c253-4f38-ab44-b0a2771cbca2">
+<div class="sourceCode cell-code" id="cb59" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb59-1">broken_cnn(xb).shape</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="47">
+<pre><code>torch.Size([16, 10, 28, 28])</code></pre>
+</div>
+</div>
+<p>::: {.cell 0=‘e’ 1=‘x’ 2=‘p’ 3=‘o’ 4=‘r’ 5=‘t’}</p>
+<div class="sourceCode cell-code" id="cb61" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb61-1"><span class="kw" style="color: #003B4F;">def</span> conv(ni, nf, ks<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">3</span>, stride<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">2</span>, act<span class="op" style="color: #5E5E5E;">=</span><span class="va" style="color: #111111;">True</span>):</span>
+<span id="cb61-2">    res <span class="op" style="color: #5E5E5E;">=</span> nn.Conv2d(ni, nf, stride<span class="op" style="color: #5E5E5E;">=</span>stride, kernel_size<span class="op" style="color: #5E5E5E;">=</span>ks, padding<span class="op" style="color: #5E5E5E;">=</span>ks<span class="op" style="color: #5E5E5E;">//</span><span class="dv" style="color: #AD0000;">2</span>)</span>
+<span id="cb61-3">    <span class="cf" style="color: #003B4F;">if</span> act: res <span class="op" style="color: #5E5E5E;">=</span> nn.Sequential(res, nn.ReLU())</span>
+<span id="cb61-4">    <span class="cf" style="color: #003B4F;">return</span> res</span></code></pre></div>
+<p>:::</p>
+<p>Refactoring parts of your neural networks like this makes it much less likely you’ll get errors due to inconsistencies in your architectures, and makes it more obvious to the reader which parts of your layers are actually changing.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb62" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb62-1">simple_cnn <span class="op" style="color: #5E5E5E;">=</span> nn.Sequential(</span>
+<span id="cb62-2">    conv(<span class="dv" style="color: #AD0000;">1</span> ,<span class="dv" style="color: #AD0000;">4</span>),            <span class="co" style="color: #5E5E5E;">#14x14</span></span>
+<span id="cb62-3">    conv(<span class="dv" style="color: #AD0000;">4</span> ,<span class="dv" style="color: #AD0000;">8</span>),            <span class="co" style="color: #5E5E5E;">#7x7</span></span>
+<span id="cb62-4">    conv(<span class="dv" style="color: #AD0000;">8</span> ,<span class="dv" style="color: #AD0000;">16</span>),           <span class="co" style="color: #5E5E5E;">#4x4</span></span>
+<span id="cb62-5">    conv(<span class="dv" style="color: #AD0000;">16</span>,<span class="dv" style="color: #AD0000;">16</span>),           <span class="co" style="color: #5E5E5E;">#2x2</span></span>
+<span id="cb62-6">    conv(<span class="dv" style="color: #AD0000;">16</span>,<span class="dv" style="color: #AD0000;">10</span>, act<span class="op" style="color: #5E5E5E;">=</span><span class="va" style="color: #111111;">False</span>), <span class="co" style="color: #5E5E5E;">#1x1</span></span>
+<span id="cb62-7">    nn.Flatten(),</span>
+<span id="cb62-8">)</span></code></pre></div>
+</div>
+<p>You now if you’ve got a mac, you can use a device called Apple. If you’ve got an Apple Silicon Mac, you’ve got a device called NPS, which is going to use the know Macs GPU here or if you’ve got it in video, you can use Cuda, which will use your and video creators, you know, ten times or more, possibly much more faster than a mac. So you definitely want to use in video if you can, but if you just running it on a laptop or whatever, you can use amps. So basically you’re going to know what device to use. Do we want to use Coda or amps? You can check if you can check torchlight back backhands that is available to see if you’re running on a mac with amps you can check</p>
+<p>torch.backends.mps.is_available()</p>
+<p>.It is available to see if you’ve got an in video GPU, in which case you’ve got CUDA. And if you’ve got neither, of course you’ll have to use the CPU to do computation. So I’ve created a little function to device which takes a tensor or a dictionary or a list of tensors or whatever, and a device to move it to. And it just goes through and moves everything onto that device. Or if it’s a dictionary, a dictionary of things, value has moved onto that device that has a handy little function. And so we can create a custom collate function which calls the PyTorch default collation function and then puts those tensors onto our device. And so with that, we’ve now got enough to run train this neural net on the GPU. You we created this get_dls function in the last lesson. So we’re going to use that passing in the datasets that we just created and our default collation function, we’re going to create our optimizer using our CNN’s parameters and then we call fit(), now fit for a member that we also created in our last lesson and it’s done. Yeah, it’s really, it’s a lot less code than last time I ran it. I don’t know if I’ve changed something weird. Let’s say now. There we go.</p>
+<p>I must have done something weird. Okay, so I then what I did then was I reduced the learning rate by a factor of four and ran it again.</p>
+<div class="cell" data-outputid="2dc7460f-678f-41b8-99f5-20ae7c394ed9">
+<div class="sourceCode cell-code" id="cb63" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb63-1">simple_cnn(xb).shape</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="50">
+<pre><code>torch.Size([16, 10])</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb65" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb65-1">x_imgs <span class="op" style="color: #5E5E5E;">=</span> x_train.view(<span class="op" style="color: #5E5E5E;">-</span><span class="dv" style="color: #AD0000;">1</span>,<span class="dv" style="color: #AD0000;">1</span>,<span class="dv" style="color: #AD0000;">28</span>,<span class="dv" style="color: #AD0000;">28</span>)</span>
+<span id="cb65-2">xv_imgs <span class="op" style="color: #5E5E5E;">=</span> x_valid.view(<span class="op" style="color: #5E5E5E;">-</span><span class="dv" style="color: #AD0000;">1</span>,<span class="dv" style="color: #AD0000;">1</span>,<span class="dv" style="color: #AD0000;">28</span>,<span class="dv" style="color: #AD0000;">28</span>)</span>
+<span id="cb65-3">train_ds,valid_ds <span class="op" style="color: #5E5E5E;">=</span> Dataset(x_imgs, y_train),Dataset(xv_imgs, y_valid)</span></code></pre></div>
+</div>
+<p>::: {.cell 0=‘e’ 1=‘x’ 2=‘p’ 3=‘o’ 4=‘r’ 5=‘t’}</p>
+<div class="sourceCode cell-code" id="cb66" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb66-1">def_device <span class="op" style="color: #5E5E5E;">=</span> <span class="st" style="color: #20794D;">'mps'</span> <span class="cf" style="color: #003B4F;">if</span> torch.backends.mps.is_available() <span class="cf" style="color: #003B4F;">else</span> <span class="st" style="color: #20794D;">'cuda'</span> <span class="cf" style="color: #003B4F;">if</span> torch.cuda.is_available() <span class="cf" style="color: #003B4F;">else</span> <span class="st" style="color: #20794D;">'cpu'</span></span>
+<span id="cb66-2"></span>
+<span id="cb66-3"><span class="kw" style="color: #003B4F;">def</span> to_device(x, device<span class="op" style="color: #5E5E5E;">=</span>def_device):</span>
+<span id="cb66-4">    <span class="cf" style="color: #003B4F;">if</span> <span class="bu" style="color: null;">isinstance</span>(x, torch.Tensor): <span class="cf" style="color: #003B4F;">return</span> x.to(device)</span>
+<span id="cb66-5">    <span class="cf" style="color: #003B4F;">if</span> <span class="bu" style="color: null;">isinstance</span>(x, Mapping): <span class="cf" style="color: #003B4F;">return</span> {k:v.to(device) <span class="cf" style="color: #003B4F;">for</span> k,v <span class="kw" style="color: #003B4F;">in</span> x.items()}</span>
+<span id="cb66-6">    <span class="cf" style="color: #003B4F;">return</span> <span class="bu" style="color: null;">type</span>(x)(to_device(o, device) <span class="cf" style="color: #003B4F;">for</span> o <span class="kw" style="color: #003B4F;">in</span> x)</span>
+<span id="cb66-7"></span>
+<span id="cb66-8"><span class="kw" style="color: #003B4F;">def</span> collate_device(b): <span class="cf" style="color: #003B4F;">return</span> to_device(default_collate(b))</span></code></pre></div>
+<p>:::</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb67" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb67-1"><span class="im" style="color: #00769E;">from</span> torch <span class="im" style="color: #00769E;">import</span> optim</span>
+<span id="cb67-2"></span>
+<span id="cb67-3">bs <span class="op" style="color: #5E5E5E;">=</span> <span class="dv" style="color: #AD0000;">256</span></span>
+<span id="cb67-4">lr <span class="op" style="color: #5E5E5E;">=</span> <span class="fl" style="color: #AD0000;">0.4</span></span>
+<span id="cb67-5">train_dl,valid_dl <span class="op" style="color: #5E5E5E;">=</span> get_dls(train_ds, valid_ds, bs, collate_fn<span class="op" style="color: #5E5E5E;">=</span>collate_device)</span>
+<span id="cb67-6">opt <span class="op" style="color: #5E5E5E;">=</span> optim.SGD(simple_cnn.parameters(), lr<span class="op" style="color: #5E5E5E;">=</span>lr)</span></code></pre></div>
+</div>
+<div class="cell" data-outputid="f7ff16e2-bbd3-4d85-e5ff-dee0372675c8">
+<div class="sourceCode cell-code" id="cb68" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb68-1">loss,acc <span class="op" style="color: #5E5E5E;">=</span> fit(<span class="dv" style="color: #AD0000;">5</span>, simple_cnn.to(def_device), F.cross_entropy, opt, train_dl, valid_dl)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>0 2.2963203880310057 0.10639999992847443
+1 0.35034381108283996 0.8865999997138977
+2 0.2884100193500519 0.9101999996185303
+3 0.3795499787807465 0.8783999994277955
+4 0.14102031185626984 0.957599999332428</code></pre>
+</div>
+</div>
+<p>And eventually, yeah, I got to a fairly similar accuracy to what we did on our multi on our MLP. So yeah, we’ve got a convolutional network working. I think that’s pretty encouraging and it’s nice that to train it, we didn’t have to write much code right? We were able to use code that we had already built. We were able to use the dataset class that we made to get_dls function that we made and the fit function that we made. And you know, because those things are written in a fairly general way, they work just as well for conv net as they did for an MLP. Nothing had to change. So that was nice. Notice we had to take the model and put it on the device as well. So that will go through and basically put all of the tensors that are in that model onto the MPS or CUDA device, if appropriate. So if we’ve got a batch size of 64 and as we do one channel channel, height width. So normally this is referred to as NCW, so n generally when you see N in a in a paper or whatever, in this way it’s referring to the batch size and being the number that’s the mnemonic, the number of items in the batch C is the number of channels height by width, and W. TensorFlow doesn’t use that TensorFlow uses an NHWC So we generally call these that channels last since channels are at the and this one we normally call channels first. Now of course it’s not actually channels first, it’s actually channel second, but we ignore the batch bit</p>
+<p>in some models, particularly some more modern models. It turns out the channels last is faster. So PyTorch has recently added support for channels last. And so you’ll see that being used more and more as well.</p>
+<p>Yeah, we go. All right. So a couple of comments and questions from our chat. The first is Sam Watkins pointing out that where we’ve actually had a bit of a win here, which is that the number of parameters now CNN is is pretty small by comparison. So the of in the MLP version, the number of parameters is equal to basically the size of this matrix. Right. So M times and NH, plus the number in this, which will be an H times ten. And you know something that at some point we probably should do is actually create something that allows us to automatically calculate the number of parameters. And I’m ignoring the bias there. Of course, let’s say what would be a good way to do that? Maybe np.product. Yeah. Okay. So what we could do, what we could do is just calculate this automatically by doing a little list comprehension here.</p>
+<p>So there’s the number of parameters across all of the different layers. So both bias and weights. And then we could, I guess, just well, we could just use well, let’s use pytouch so we could turn that into a tensor and sum it up. So that’s the number in our MLP. And then the number in our simple CNN. So that’s pretty cool. We’ve gone down from 40000 to 5000 and got about the same number there. Oh, thank you, Jonathan. Jonathan’s reminding me that there’s a better way than np.product shape, which is just to say I dot number of elements num of element. Very nice.</p>
+<p>Now, one person asked a very good question, which is I thought convolutional neural networks can handle any sized image and actually know this convolutional network cannot handle any sized image. This convolutional neural network only handles images that once they go through these tried to convs end up with a one by one because otherwise you can’t dot Flatten it and end up with 16 by ten. So we will learn how to create comv nets that can handle any sized input. But there’s nothing particularly about a net that necessitates that it has to be any sized input that it can handle. Okay.</p>
+<p>So just let’s briefly finish this section off by talking about this. Yeah. That this well, particularly on to talk about the idea of receptive field, consider this. Yeah. One input Channel four output. Channel three by three kernal. Right. So that’s just here just to show you what we’re doing here conv one. Well actually so simple. See it in simple CNN. This is the model we created. Remember, is like a sequential model containing sequential models because that’s how our current function worked. So simple. CNN zero is our first layer. It contains both conv and a relu so I simple CNN zero zero is the actual conv. So if we grab that whole conf one, it’s a four by one, by three by three. So number of outputs, number of input channels and height by weight for that kernal and then it’s got its bias as well. So that’s how we could kind of deconstruct what’s going on with our weight matrices or our parameters inside a convolution. Now I’m going to switch over to Excel.</p>
+<div class="cell" data-outputid="ab206540-caf3-4487-e40b-16e48da8ac8d">
+<div class="sourceCode cell-code" id="cb70" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb70-1">opt <span class="op" style="color: #5E5E5E;">=</span> optim.SGD(simple_cnn.parameters(), lr<span class="op" style="color: #5E5E5E;">=</span>lr<span class="op" style="color: #5E5E5E;">/</span><span class="dv" style="color: #AD0000;">4</span>)</span>
+<span id="cb70-2">loss,acc <span class="op" style="color: #5E5E5E;">=</span> fit(<span class="dv" style="color: #AD0000;">5</span>, simple_cnn.to(def_device), F.cross_entropy, opt, train_dl, valid_dl)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>0 0.10183437039852142 0.9675999994277954
+1 0.10473719484806061 0.9674999994277954
+2 0.10602079322338104 0.9673999995231628
+3 0.09614700574874878 0.9709999995231628
+4 0.09545752574205399 0.9696999994277954</code></pre>
+</div>
+</div>
+<section id="understanding-convolution-arithmetic" class="level3">
+<h3 class="anchored" data-anchor-id="understanding-convolution-arithmetic">Understanding Convolution Arithmetic</h3>
+<p>In an input of size <code>64x1x28x28</code> the axes are <code>batch,channel,height,width</code>. This is often represented as <code>NCHW</code> (where <code>N</code> refers to batch size). Tensorflow, on the other hand, uses <code>NHWC</code> axis order (aka “channels-last”). Channels-last is faster for many models, so recently it’s become more common to see this as an option in PyTorch too.</p>
+<p>We have 1 input channel, 4 output channels, and a 3×3 kernel.</p>
+<div class="cell" data-outputid="3d6b4a40-9da7-4888-dddf-3dcd648f36cf">
+<div class="sourceCode cell-code" id="cb72" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb72-1">simple_cnn[<span class="dv" style="color: #AD0000;">0</span>][<span class="dv" style="color: #AD0000;">0</span>]</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="56">
+<pre><code>Conv2d(1, 4, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1))</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="6c03ec94-b415-4fe5-9ce7-b07ef9625a27">
+<div class="sourceCode cell-code" id="cb74" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb74-1">conv1 <span class="op" style="color: #5E5E5E;">=</span> simple_cnn[<span class="dv" style="color: #AD0000;">0</span>][<span class="dv" style="color: #AD0000;">0</span>]</span>
+<span id="cb74-2">conv1.weight.shape</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="57">
+<pre><code>torch.Size([4, 1, 3, 3])</code></pre>
+</div>
+</div>
+<div class="cell" data-outputid="c7cc6d2d-9bf0-497b-9849-074f3a24a26a">
+<div class="sourceCode cell-code" id="cb76" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb76-1">conv1.bias.shape</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="58">
+<pre><code>torch.Size([4])</code></pre>
+</div>
+</div>
+<p>The <em>receptive field</em> is the area of an image that is involved in the calculation of a layer. <em>conv-example.xlsx</em> shows the calculation of two stride-2 convolutional layers using an MNIST digit. Here’s what we see if we click on one of the cells in the <em>conv2</em> section, which shows the output of the second convolutional layer, and click <em>trace precedents</em>.</p>
+<p><img alt="Immediate precedents of conv2 layer" width="308" caption="Immediate precedents of Conv2 layer" id="preced1" src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/https:/github.com/fastai/course22p2/blob/master/nbs/images/att_00068.png?raw=1"></p>
+<p>The blue highlighted cells are its <em>precedents</em>—that is, the cells used to calculate its value. These cells are the corresponding 3×3 area of cells from the input layer (on the left), and the cells from the filter (on the right). Click <em>trace precedents</em> again:</p>
+<p><img alt="Secondary precedents of conv2 layer" width="601" caption="Secondary precedents of Conv2 layer" id="preced2" src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/https:/github.com/fastai/course22p2/blob/master/nbs/images/att_00069.png?raw=1"></p>
+<p>In this example, we have just two convolutional layers. We can see that a 7×7 area of cells in the input layer is used to calculate the single green cell in the Conv2 layer. This is the <em>receptive field</em></p>
+<p>The deeper we are in the network (specifically, the more stride-2 convs we have before a layer), the larger the receptive field for an activation in that layer.</p>
+</section>
+</section>
+<section id="color-images" class="level2">
+<h2 class="anchored" data-anchor-id="color-images">Color Images</h2>
+<p>A colour picture is a rank-3 tensor:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb78" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb78-1"><span class="im" style="color: #00769E;">from</span> torchvision.io <span class="im" style="color: #00769E;">import</span> read_image</span></code></pre></div>
+</div>
+<p><img src="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/https:/github.com/fastai/course22p2/blob/master/nbs/images/chapter9_rgbconv.svg?raw=1" id="rgbconv" caption="Convolution over an RGB image" alt="Convolution over an RGB image" width="550"></p>
+
+
+</section>
+</section>
+
+ ]]></description>
+  <category>fastaipart2</category>
+  <category>Stable-Diffusion</category>
+  <guid>https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/index.html</guid>
+  <pubDate>Sat, 01 Apr 2023 19:30:00 GMT</pubDate>
+  <media:content url="https://bahmansadeghi.com/posts/Writing Stable Diffusion from Scratch 10/attachment:image.png" medium="image" type="image/png"/>
+</item>
 <item>
   <title>Writing Stable Diffusion from Scratch 9</title>
   <dc:creator>Bahman Sadeghi</dc:creator>
@@ -21,7 +882,7 @@
 
 <p>All credits goes to fast.ai All mistakes are mine.</p>
 <p>You should know and practice following after this blog post : <br> 1- Callbacks , callable class <br> 2- Partial <br> 3- Lambda <br> 4- <strong>dunder</strong> thingies <br></p>
-<div class="cell" data-execution_count="51">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;">import</span> torch</span>
 <span id="cb1-2"><span class="im" style="color: #00769E;">import</span> matplotlib.pyplot <span class="im" style="color: #00769E;">as</span> plt</span>
 <span id="cb1-3"><span class="im" style="color: #00769E;">import</span> random</span></code></pre></div>
@@ -34,28 +895,28 @@
 <h2 class="anchored" data-anchor-id="callbacks">Callbacks</h2>
 <section id="callbacks-as-gui-events" class="level3">
 <h3 class="anchored" data-anchor-id="callbacks-as-gui-events">Callbacks as GUI events</h3>
-<div class="cell" data-execution_count="52">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><span class="im" style="color: #00769E;">import</span> ipywidgets <span class="im" style="color: #00769E;">as</span> widgets</span></code></pre></div>
 </div>
 <p>From the <a href="https://ipywidgets.readthedocs.io/en/stable/examples/Widget%20Events.html">ipywidget docs</a>:</p>
 <ul>
 <li><em>the button widget is used to handle mouse clicks. The on_click method of the Button can be used to register function to be called when the button is clicked</em></li>
 </ul>
-<div class="cell" data-execution_count="53">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1">w <span class="op" style="color: #5E5E5E;">=</span> widgets.Button(description<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">'Click me'</span>)</span></code></pre></div>
 </div>
-<div class="cell" data-outputid="7441a168-08d0-4ddc-bc21-ca78e9f08085" data-execution_count="54">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1">w</span></code></pre></div>
 <div class="cell-output cell-output-display">
 <script type="application/vnd.jupyter.widget-view+json">
-{"version_major":2,"version_minor":0,"model_id":"b1f2b837ac664a7997b42e074f65280f"}
+{"model_id":"b1f2b837ac664a7997b42e074f65280f","version_major":2,"version_minor":0}
 </script>
 </div>
 </div>
-<div class="cell" data-execution_count="55">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><span class="kw" style="color: #003B4F;">def</span> f(o): <span class="bu" style="color: null;">print</span>(<span class="st" style="color: #20794D;">'hi'</span>)</span></code></pre></div>
 </div>
-<div class="cell" data-execution_count="56">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1">w.on_click(f)</span></code></pre></div>
 </div>
 <p><em>NB: When callbacks are used in this way they are often called “events”.</em></p>
@@ -64,10 +925,10 @@
 </section>
 <section id="creating-your-own-callback" class="level3">
 <h3 class="anchored" data-anchor-id="creating-your-own-callback">Creating your own callback</h3>
-<div class="cell" data-execution_count="57">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><span class="im" style="color: #00769E;">from</span> time <span class="im" style="color: #00769E;">import</span> sleep</span></code></pre></div>
 </div>
-<div class="cell" data-execution_count="58">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><span class="kw" style="color: #003B4F;">def</span> slow_calculation():</span>
 <span id="cb8-2">    res <span class="op" style="color: #5E5E5E;">=</span> <span class="dv" style="color: #AD0000;">0</span></span>
 <span id="cb8-3">    <span class="cf" style="color: #003B4F;">for</span> i <span class="kw" style="color: #003B4F;">in</span> <span class="bu" style="color: null;">range</span>(<span class="dv" style="color: #AD0000;">5</span>):</span>
@@ -75,16 +936,16 @@
 <span id="cb8-5">        sleep(<span class="dv" style="color: #AD0000;">1</span>)</span>
 <span id="cb8-6">    <span class="cf" style="color: #003B4F;">return</span> res</span></code></pre></div>
 </div>
-<div class="cell" data-outputid="e3d6648f-705c-4da3-876a-c0efca36d0b4" data-execution_count="59">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1">slow_calculation()</span></code></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="59">
+<div class="cell-output cell-output-display">
 <pre><code>30</code></pre>
 </div>
 </div>
 <p>So here’s how we can modify our calculation routine such that you can optionally pass it a callback. And so all of these codes are the same, except we’ve added this one line of code that says if there’s a callback, then call it and pass in what what we’re up to. So then we could create our callback function. So this is just like we created a our callback function f let’s create a show_progress callback function that’s going to tell us how far we’ve got. So now if we call slow calculation passing in our callback, you can say it’s going to call this function at the end of each step.</p>
 <p>So here we’ve created our own callback so there’s nothing special about a callback. Like it doesn’t require its own like syntax. It’s not a new concept, it’s just an idea really, which is the idea of passing in a function which some other function will call at particular times, such as at the end of a step or such as when you click a button. So that’s what we mean by callbacks.</p>
 <p>We don’t have to define the function ahead of time. We could define the function at the same time that we call the slow calculation by using Lambda. So as we’ve discussed before, Lambda just defines a function, but it doesn’t give it a name. So here’s a function that takes one parameter and prints out exactly the same thing as before. So here’s the same way as doing it, but using a lambda, we could make it more sophisticated now and rather than always saying also we finished epoc, whatever we could have let you pass in an exclamation and we print that out. And so in this case, we could now have our lambda call that function. And so one of the things that we can do now is to again, we can create a function that returns a function. And so we could create a make_ _show_progress function where you pass in the exclamation mark. We could then create in this no need to give it a name. it’s just return it directly. We can return a function that calls that exclamation. So here we are passing in Nice, and that’s exactly the same as doing something like what we’ve done before. We could say instead of using a lambda we can create in a function like this. So here is now a function that returns, a function that says exactly the same thing. Okay, so one way with the lambda when we’re allowed to lambda and one of the reasons I wanted to show you that is so we can do exactly the same thing using partial. So with partial, it’s going to do exactly the same thing as this kind of makes show progress. It’s going to call, show progress and pass. Okay. I guess so is again an example of a function returning a function. And so this is a function that calls show progress, passing in this as the first parameter. And Again, it does exactly the same thing. Okay. So where you get we tend to use partial a lot. So that’s certainly something worth spending time practicing. Now, as we’ve discussed, Python doesn’t care about types in particular, and there’s nothing about any of this that requires cb to be a function.</p>
-<div class="cell" data-execution_count="60">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><span class="kw" style="color: #003B4F;">def</span> slow_calculation(cb<span class="op" style="color: #5E5E5E;">=</span><span class="va" style="color: #111111;">None</span>):</span>
 <span id="cb11-2">    res <span class="op" style="color: #5E5E5E;">=</span> <span class="dv" style="color: #AD0000;">0</span></span>
 <span id="cb11-3">    <span class="cf" style="color: #003B4F;">for</span> i <span class="kw" style="color: #003B4F;">in</span> <span class="bu" style="color: null;">range</span>(<span class="dv" style="color: #AD0000;">5</span>):</span>
@@ -93,10 +954,10 @@
 <span id="cb11-6">        <span class="cf" style="color: #003B4F;">if</span> cb: cb(i)</span>
 <span id="cb11-7">    <span class="cf" style="color: #003B4F;">return</span> res</span></code></pre></div>
 </div>
-<div class="cell" data-execution_count="61">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><span class="kw" style="color: #003B4F;">def</span> show_progress(epoch): <span class="bu" style="color: null;">print</span>(<span class="ss" style="color: #20794D;">f"Awesome! We've finished epoch </span><span class="sc" style="color: #5E5E5E;">{</span>epoch<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">!"</span>)</span></code></pre></div>
 </div>
-<div class="cell" data-outputid="593c7b5d-a5d0-4819-efbf-21b055c017d3" data-execution_count="62">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1">slow_calculation(show_progress)</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Awesome! We've finished epoch 0!
@@ -105,14 +966,14 @@ Awesome! We've finished epoch 2!
 Awesome! We've finished epoch 3!
 Awesome! We've finished epoch 4!</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="62">
+<div class="cell-output cell-output-display">
 <pre><code>30</code></pre>
 </div>
 </div>
 </section>
 <section id="lambdas-and-partials" class="level3">
 <h3 class="anchored" data-anchor-id="lambdas-and-partials">Lambdas and partials</h3>
-<div class="cell" data-outputid="bc8be93d-d044-447a-b86d-a200150329de" data-execution_count="63">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1">slow_calculation(<span class="kw" style="color: #003B4F;">lambda</span> o: <span class="bu" style="color: null;">print</span>(<span class="ss" style="color: #20794D;">f"Awesome! We've finished epoch </span><span class="sc" style="color: #5E5E5E;">{</span>o<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">!"</span>))</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Awesome! We've finished epoch 0!
@@ -121,14 +982,14 @@ Awesome! We've finished epoch 2!
 Awesome! We've finished epoch 3!
 Awesome! We've finished epoch 4!</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="63">
+<div class="cell-output cell-output-display">
 <pre><code>30</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="64">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb19" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><span class="kw" style="color: #003B4F;">def</span> show_progress(exclamation, epoch): <span class="bu" style="color: null;">print</span>(<span class="ss" style="color: #20794D;">f"</span><span class="sc" style="color: #5E5E5E;">{</span>exclamation<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">! We've finished epoch </span><span class="sc" style="color: #5E5E5E;">{</span>epoch<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">!"</span>)</span></code></pre></div>
 </div>
-<div class="cell" data-outputid="22af378e-487a-4f75-c4b5-35ad9eb14902" data-execution_count="65">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb20" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1">slow_calculation(<span class="kw" style="color: #003B4F;">lambda</span> o: show_progress(<span class="st" style="color: #20794D;">"OK I guess"</span>, o))</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>OK I guess! We've finished epoch 0!
@@ -137,16 +998,16 @@ OK I guess! We've finished epoch 2!
 OK I guess! We've finished epoch 3!
 OK I guess! We've finished epoch 4!</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="65">
+<div class="cell-output cell-output-display">
 <pre><code>30</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="66">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb23" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><span class="kw" style="color: #003B4F;">def</span> make_show_progress(exclamation):</span>
 <span id="cb23-2">    <span class="kw" style="color: #003B4F;">def</span> _inner(epoch): <span class="bu" style="color: null;">print</span>(<span class="ss" style="color: #20794D;">f"</span><span class="sc" style="color: #5E5E5E;">{</span>exclamation<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">! We've finished epoch </span><span class="sc" style="color: #5E5E5E;">{</span>epoch<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">!"</span>)</span>
 <span id="cb23-3">    <span class="cf" style="color: #003B4F;">return</span> _inner</span></code></pre></div>
 </div>
-<div class="cell" data-outputid="bb06a680-f92b-448e-ea97-8b8bcf5e1b86" data-execution_count="67">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb24" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1">slow_calculation(make_show_progress(<span class="st" style="color: #20794D;">"Nice!"</span>))</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Nice!! We've finished epoch 0!
@@ -155,14 +1016,14 @@ Nice!! We've finished epoch 2!
 Nice!! We've finished epoch 3!
 Nice!! We've finished epoch 4!</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="67">
+<div class="cell-output cell-output-display">
 <pre><code>30</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="68">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb27" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><span class="im" style="color: #00769E;">from</span> functools <span class="im" style="color: #00769E;">import</span> partial</span></code></pre></div>
 </div>
-<div class="cell" data-outputid="34edcaa8-24e9-4121-acf2-6d7dac592bce" data-execution_count="69">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb28" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1">slow_calculation(partial(show_progress, <span class="st" style="color: #20794D;">"OK I guess"</span>))</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>OK I guess! We've finished epoch 0!
@@ -171,11 +1032,11 @@ OK I guess! We've finished epoch 2!
 OK I guess! We've finished epoch 3!
 OK I guess! We've finished epoch 4!</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="69">
+<div class="cell-output cell-output-display">
 <pre><code>30</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="70">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb31" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1">f2 <span class="op" style="color: #5E5E5E;">=</span> partial(show_progress, <span class="st" style="color: #20794D;">"OK I guess"</span>)</span></code></pre></div>
 </div>
 <p>It just happens to be it just has to be a callable.</p>
@@ -185,15 +1046,15 @@ OK I guess! We've finished epoch 4!</code></pre>
 </section>
 <section id="callbacks-as-callable-classes" class="level3">
 <h3 class="anchored" data-anchor-id="callbacks-as-callable-classes">Callbacks as callable classes</h3>
-<div class="cell" data-execution_count="71">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb32" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><span class="kw" style="color: #003B4F;">class</span> ProgressShowingCallback():</span>
 <span id="cb32-2">    <span class="kw" style="color: #003B4F;">def</span> <span class="fu" style="color: #4758AB;">__init__</span>(<span class="va" style="color: #111111;">self</span>, exclamation<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">"Awesome"</span>): <span class="va" style="color: #111111;">self</span>.exclamation <span class="op" style="color: #5E5E5E;">=</span> exclamation</span>
 <span id="cb32-3">    <span class="kw" style="color: #003B4F;">def</span> <span class="fu" style="color: #4758AB;">__call__</span>(<span class="va" style="color: #111111;">self</span>, epoch): <span class="bu" style="color: null;">print</span>(<span class="ss" style="color: #20794D;">f"</span><span class="sc" style="color: #5E5E5E;">{</span><span class="va" style="color: #111111;">self</span><span class="sc" style="color: #5E5E5E;">.</span>exclamation<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">! We've finished epoch </span><span class="sc" style="color: #5E5E5E;">{</span>epoch<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">!"</span>)</span></code></pre></div>
 </div>
-<div class="cell" data-execution_count="72">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb33" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1">cb <span class="op" style="color: #5E5E5E;">=</span> ProgressShowingCallback(<span class="st" style="color: #20794D;">"Just super"</span>)</span></code></pre></div>
 </div>
-<div class="cell" data-outputid="ad1eef98-54a6-4824-fc24-f5500c029eda" data-execution_count="73">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb34" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1">slow_calculation(cb)</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Just super! We've finished epoch 0!
@@ -202,7 +1063,7 @@ Just super! We've finished epoch 2!
 Just super! We've finished epoch 3!
 Just super! We've finished epoch 4!</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="73">
+<div class="cell-output cell-output-display">
 <pre><code>30</code></pre>
 </div>
 </div>
@@ -216,19 +1077,19 @@ Just super! We've finished epoch 4!</code></pre>
 <p>Okay, so this comes up a lot. And so it’s it’s important to remember that this is literally all that they’re doing. And then on the other hand, let’s say we had a function which takes a couple of let’s try that print. I actually just put them directly a, b, c, okay. We can also, rather than just using them as parameters, we can also use some of them when calling something. So let’s say I create something called args again. It doesn’t have to be called args called, which contains one comma two. And I create something called kwargs that contains a dictionary</p>
 <p>args = [1,2] kwargs = {‘c’:3}</p>
 <p>G and I can pass in star args,star star kwargs. And that’s going to take this one two and pass them as individual arguments for positionally. And it’s going to take the {‘c’:3} and pass that as a named argument. c equals three. And there it is. Okay, so they’re kind of two linked but different ways that use star and star star.</p>
-<div class="cell" data-execution_count="74">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb37" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1"><span class="kw" style="color: #003B4F;">def</span> f(<span class="op" style="color: #5E5E5E;">*</span>a, <span class="op" style="color: #5E5E5E;">**</span>b): <span class="bu" style="color: null;">print</span>(<span class="ss" style="color: #20794D;">f"args: </span><span class="sc" style="color: #5E5E5E;">{</span>a<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">; kwargs: </span><span class="sc" style="color: #5E5E5E;">{</span>b<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">"</span>)</span></code></pre></div>
 </div>
-<div class="cell" data-outputid="3e997525-c044-4429-8b1e-83d8cd7ad04b" data-execution_count="75">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb38" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1">f(<span class="dv" style="color: #AD0000;">3</span>, <span class="st" style="color: #20794D;">'a'</span>, thing1<span class="op" style="color: #5E5E5E;">=</span><span class="st" style="color: #20794D;">"hello"</span>)</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>args: (3, 'a'); kwargs: {'thing1': 'hello'}</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="76">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb40" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><span class="kw" style="color: #003B4F;">def</span> g(a,b,c<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">0</span>): <span class="bu" style="color: null;">print</span>(a,b,c)</span></code></pre></div>
 </div>
-<div class="cell" data-outputid="9b408d56-5ca2-474a-933a-cc9572051e7d" data-execution_count="77">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb41" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1">args <span class="op" style="color: #5E5E5E;">=</span> [<span class="dv" style="color: #AD0000;">1</span>,<span class="dv" style="color: #AD0000;">2</span>]</span>
 <span id="cb41-2">kwargs <span class="op" style="color: #5E5E5E;">=</span> {<span class="st" style="color: #20794D;">'c'</span>:<span class="dv" style="color: #AD0000;">3</span>}</span>
 <span id="cb41-3">g(<span class="op" style="color: #5E5E5E;">*</span>args, <span class="op" style="color: #5E5E5E;">**</span>kwargs)</span></code></pre></div>
@@ -236,7 +1097,7 @@ Just super! We've finished epoch 4!</code></pre>
 <pre><code>1 2 3</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="78">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb43" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><span class="kw" style="color: #003B4F;">def</span> slow_calculation(cb<span class="op" style="color: #5E5E5E;">=</span><span class="va" style="color: #111111;">None</span>):</span>
 <span id="cb43-2">    res <span class="op" style="color: #5E5E5E;">=</span> <span class="dv" style="color: #AD0000;">0</span></span>
 <span id="cb43-3">    <span class="cf" style="color: #003B4F;">for</span> i <span class="kw" style="color: #003B4F;">in</span> <span class="bu" style="color: null;">range</span>(<span class="dv" style="color: #AD0000;">5</span>):</span>
@@ -250,12 +1111,12 @@ Just super! We've finished epoch 4!</code></pre>
 <p>Okay. And so this is printing before and after every step by call, calling before_calc and after_calc. So callback actually doesn’t have to be a callable. It doesn’t have to be a function. A callback could be something that contains methods. So we could have a version of this which actually, as you can see here, it’s going to pass int after_calc, both the epoch number and the value it’s up to. But by using star args and star star kwargs I can just safely ignore them if I don’t want them. Right? So it’s just going to chew them up and not complain.</p>
 <p>If I didn’t have those here, it won’t work because it got passed in value equals and there’s nothing here looking for val equals that doesn’t like that. So this is one good use star args and star star kwargs eat up arguments You don’t want.</p>
 <p>Or we could use the argument. So let’s actually use epoch and Val and print them out and there it is. So this is a more sophisticated callback that’s giving us status as we go.</p>
-<div class="cell" data-execution_count="79">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb44" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><span class="kw" style="color: #003B4F;">class</span> PrintStepCallback():</span>
 <span id="cb44-2">    <span class="kw" style="color: #003B4F;">def</span> before_calc(<span class="va" style="color: #111111;">self</span>, <span class="op" style="color: #5E5E5E;">*</span>args, <span class="op" style="color: #5E5E5E;">**</span>kwargs): <span class="bu" style="color: null;">print</span>(<span class="ss" style="color: #20794D;">f"About to start"</span>)</span>
 <span id="cb44-3">    <span class="kw" style="color: #003B4F;">def</span> after_calc (<span class="va" style="color: #111111;">self</span>, <span class="op" style="color: #5E5E5E;">*</span>args, <span class="op" style="color: #5E5E5E;">**</span>kwargs): <span class="bu" style="color: null;">print</span>(<span class="ss" style="color: #20794D;">f"Done step"</span>)</span></code></pre></div>
 </div>
-<div class="cell" data-outputid="c8c3ac32-2690-4b51-e0d3-b162478a2a28" data-execution_count="80">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb45" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1">slow_calculation(PrintStepCallback())</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>About to start
@@ -269,17 +1130,17 @@ Done step
 About to start
 Done step</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="80">
+<div class="cell-output cell-output-display">
 <pre><code>30</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="81">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb48" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><span class="kw" style="color: #003B4F;">class</span> PrintStatusCallback():</span>
 <span id="cb48-2">    <span class="kw" style="color: #003B4F;">def</span> <span class="fu" style="color: #4758AB;">__init__</span>(<span class="va" style="color: #111111;">self</span>): <span class="cf" style="color: #003B4F;">pass</span></span>
 <span id="cb48-3">    <span class="kw" style="color: #003B4F;">def</span> before_calc(<span class="va" style="color: #111111;">self</span>, epoch, <span class="op" style="color: #5E5E5E;">**</span>kwargs): <span class="bu" style="color: null;">print</span>(<span class="ss" style="color: #20794D;">f"About to start: </span><span class="sc" style="color: #5E5E5E;">{</span>epoch<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">"</span>)</span>
 <span id="cb48-4">    <span class="kw" style="color: #003B4F;">def</span> after_calc (<span class="va" style="color: #111111;">self</span>, epoch, val, <span class="op" style="color: #5E5E5E;">**</span>kwargs): <span class="bu" style="color: null;">print</span>(<span class="ss" style="color: #20794D;">f"After </span><span class="sc" style="color: #5E5E5E;">{</span>epoch<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">: </span><span class="sc" style="color: #5E5E5E;">{</span>val<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">"</span>)</span></code></pre></div>
 </div>
-<div class="cell" data-outputid="a2edd19c-a2e8-499d-a707-9fd22925092a" data-execution_count="82">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb49" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb49-1">slow_calculation(PrintStatusCallback())</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>About to start: 0
@@ -293,14 +1154,14 @@ After 3: 14
 About to start: 4
 After 4: 30</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="82">
+<div class="cell-output cell-output-display">
 <pre><code>30</code></pre>
 </div>
 </div>
 </section>
 <section id="modifying-behavior" class="level3">
 <h3 class="anchored" data-anchor-id="modifying-behavior">Modifying behavior</h3>
-<div class="cell" data-execution_count="83">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb52" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb52-1"><span class="kw" style="color: #003B4F;">def</span> slow_calculation(cb<span class="op" style="color: #5E5E5E;">=</span><span class="va" style="color: #111111;">None</span>):</span>
 <span id="cb52-2">    res <span class="op" style="color: #5E5E5E;">=</span> <span class="dv" style="color: #AD0000;">0</span></span>
 <span id="cb52-3">    <span class="cf" style="color: #003B4F;">for</span> i <span class="kw" style="color: #003B4F;">in</span> <span class="bu" style="color: null;">range</span>(<span class="dv" style="color: #AD0000;">5</span>):</span>
@@ -313,13 +1174,13 @@ After 4: 30</code></pre>
 <span id="cb52-10">                <span class="cf" style="color: #003B4F;">break</span></span>
 <span id="cb52-11">    <span class="cf" style="color: #003B4F;">return</span> res</span></code></pre></div>
 </div>
-<div class="cell" data-execution_count="84">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb53" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb53-1"><span class="kw" style="color: #003B4F;">class</span> PrintAfterCallback():</span>
 <span id="cb53-2">    <span class="kw" style="color: #003B4F;">def</span> after_calc (<span class="va" style="color: #111111;">self</span>, epoch, val):</span>
 <span id="cb53-3">        <span class="bu" style="color: null;">print</span>(<span class="ss" style="color: #20794D;">f"After </span><span class="sc" style="color: #5E5E5E;">{</span>epoch<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">: </span><span class="sc" style="color: #5E5E5E;">{</span>val<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">"</span>)</span>
 <span id="cb53-4">        <span class="cf" style="color: #003B4F;">if</span> val<span class="op" style="color: #5E5E5E;">&gt;</span><span class="dv" style="color: #AD0000;">10</span>: <span class="cf" style="color: #003B4F;">return</span> <span class="va" style="color: #111111;">True</span></span></code></pre></div>
 </div>
-<div class="cell" data-outputid="9d531a5b-30d1-4bfb-c160-b651852b2ee8" data-execution_count="85">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb54" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb54-1">slow_calculation(PrintAfterCallback())</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>After 0: 0
@@ -328,11 +1189,11 @@ After 2: 5
 After 3: 14
 stopping early</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="85">
+<div class="cell-output cell-output-display">
 <pre><code>14</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="86">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb57" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb57-1"><span class="kw" style="color: #003B4F;">class</span> SlowCalculator():</span>
 <span id="cb57-2">    <span class="kw" style="color: #003B4F;">def</span> <span class="fu" style="color: #4758AB;">__init__</span>(<span class="va" style="color: #111111;">self</span>, cb<span class="op" style="color: #5E5E5E;">=</span><span class="va" style="color: #111111;">None</span>): <span class="va" style="color: #111111;">self</span>.cb,<span class="va" style="color: #111111;">self</span>.res <span class="op" style="color: #5E5E5E;">=</span> cb,<span class="dv" style="color: #AD0000;">0</span></span>
 <span id="cb57-3">    </span>
@@ -350,17 +1211,17 @@ stopping early</code></pre>
 <span id="cb57-15">                <span class="bu" style="color: null;">print</span>(<span class="st" style="color: #20794D;">"stopping early"</span>)</span>
 <span id="cb57-16">                <span class="cf" style="color: #003B4F;">break</span></span></code></pre></div>
 </div>
-<div class="cell" data-execution_count="87">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb58" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb58-1"><span class="kw" style="color: #003B4F;">class</span> ModifyingCallback():</span>
 <span id="cb58-2">    <span class="kw" style="color: #003B4F;">def</span> after_calc (<span class="va" style="color: #111111;">self</span>, calc, epoch):</span>
 <span id="cb58-3">        <span class="bu" style="color: null;">print</span>(<span class="ss" style="color: #20794D;">f"After </span><span class="sc" style="color: #5E5E5E;">{</span>epoch<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">: </span><span class="sc" style="color: #5E5E5E;">{</span>calc<span class="sc" style="color: #5E5E5E;">.</span>res<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">"</span>)</span>
 <span id="cb58-4">        <span class="cf" style="color: #003B4F;">if</span> calc.res<span class="op" style="color: #5E5E5E;">&gt;</span><span class="dv" style="color: #AD0000;">10</span>: <span class="cf" style="color: #003B4F;">return</span> <span class="va" style="color: #111111;">True</span></span>
 <span id="cb58-5">        <span class="cf" style="color: #003B4F;">if</span> calc.res<span class="op" style="color: #5E5E5E;">&lt;</span><span class="dv" style="color: #AD0000;">3</span>: calc.res <span class="op" style="color: #5E5E5E;">=</span> calc.res<span class="op" style="color: #5E5E5E;">*</span><span class="dv" style="color: #AD0000;">2</span></span></code></pre></div>
 </div>
-<div class="cell" data-execution_count="88">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb59" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb59-1">calculator <span class="op" style="color: #5E5E5E;">=</span> SlowCalculator(ModifyingCallback())</span></code></pre></div>
 </div>
-<div class="cell" data-outputid="4edfb3e1-5f79-42a2-ac68-4fcd7d5ae899" data-execution_count="89">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb60" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb60-1">calculator.calc()</span>
 <span id="cb60-2">calculator.res</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -370,7 +1231,7 @@ After 2: 6
 After 3: 15
 stopping early</code></pre>
 </div>
-<div class="cell-output cell-output-display" data-execution_count="89">
+<div class="cell-output cell-output-display">
 <pre><code>15</code></pre>
 </div>
 </div>
@@ -384,17 +1245,17 @@ stopping early</code></pre>
 <p>And so if you go to the Python documentation, it’ll tell you about these various different his <strong>repr</strong> which we used earlier is <strong>init</strong> that we used earlier. So they’re all here. PyTorch has some of its own, numpy has some of its own.</p>
 <p>So for example, if python says plus what it actually does is it calls <strong>add</strong>. So if we want to create something that’s not very good at adding things, it actually also always adds point. I want to it that I can say sloppy at a one plus floppy at a two equals 3.01. So plus here is actually calling <strong>add</strong>. So if you’re not familiar with this, click on this data model link and read about these specific one two, three, four, five, six, seven, eight, nine, ten, 11 methods because we’ll be using all of these in the course.</p>
 <p>So I’ll try to revise them when we can. But I’m generally going to assume that, you know, a particularly interesting one is <strong>getattr</strong> and <strong>getitem</strong>. We’ve seen <strong>setattr</strong> already get across just the opposite. Take a look at this. Here’s a class. It just contains two attributes a, b, that are set one and two. So create that an object of that class a.b equals two because I set b to two. Okay. Now when you say dot B, that’s just in texture. Good. Basically in Python, what it’s actually calling behind the scenes is <strong>getattr</strong>, it calls, <strong>getattr</strong> on the object. And so this one here is the same <strong>getattr</strong> a comma b which hopefully</p>
-<div class="cell" data-execution_count="90">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb63" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb63-1"><span class="kw" style="color: #003B4F;">class</span> SloppyAdder():</span>
 <span id="cb63-2">    <span class="kw" style="color: #003B4F;">def</span> <span class="fu" style="color: #4758AB;">__init__</span>(<span class="va" style="color: #111111;">self</span>,o): <span class="va" style="color: #111111;">self</span>.o<span class="op" style="color: #5E5E5E;">=</span>o</span>
 <span id="cb63-3">    <span class="kw" style="color: #003B4F;">def</span> <span class="fu" style="color: #4758AB;">__add__</span>(<span class="va" style="color: #111111;">self</span>,b): <span class="cf" style="color: #003B4F;">return</span> SloppyAdder(<span class="va" style="color: #111111;">self</span>.o <span class="op" style="color: #5E5E5E;">+</span> b.o <span class="op" style="color: #5E5E5E;">+</span> <span class="fl" style="color: #AD0000;">0.01</span>)</span>
 <span id="cb63-4">    <span class="kw" style="color: #003B4F;">def</span> <span class="fu" style="color: #4758AB;">__repr__</span>(<span class="va" style="color: #111111;">self</span>): <span class="cf" style="color: #003B4F;">return</span> <span class="bu" style="color: null;">str</span>(<span class="va" style="color: #111111;">self</span>.o)</span></code></pre></div>
 </div>
-<div class="cell" data-outputid="9e261baf-9698-4170-86bc-669e031dccec" data-execution_count="91">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb64" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb64-1">a <span class="op" style="color: #5E5E5E;">=</span> SloppyAdder(<span class="dv" style="color: #AD0000;">1</span>)</span>
 <span id="cb64-2">b <span class="op" style="color: #5E5E5E;">=</span> SloppyAdder(<span class="dv" style="color: #AD0000;">2</span>)</span>
 <span id="cb64-3">a<span class="op" style="color: #5E5E5E;">+</span>b</span></code></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="91">
+<div class="cell-output cell-output-display">
 <pre><code>3.01</code></pre>
 </div>
 </div>
@@ -414,50 +1275,50 @@ stopping early</code></pre>
 </ul>
 <section id="getattr__-and-getattr" class="level3">
 <h3 class="anchored" data-anchor-id="getattr__-and-getattr"><code>__getattr__</code> and <code>getattr</code></h3>
-<div class="cell" data-execution_count="92">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb66" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb66-1"><span class="kw" style="color: #003B4F;">class</span> A: a,b<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">1</span>,<span class="dv" style="color: #AD0000;">2</span></span></code></pre></div>
 </div>
-<div class="cell" data-execution_count="93">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb67" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb67-1">a <span class="op" style="color: #5E5E5E;">=</span> A()</span></code></pre></div>
 </div>
-<div class="cell" data-outputid="f5e606b7-c725-4df8-b945-f0075f6e2dfe" data-execution_count="94">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb68" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb68-1">a.b</span></code></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="94">
+<div class="cell-output cell-output-display">
 <pre><code>2</code></pre>
 </div>
 </div>
-<div class="cell" data-outputid="7364bbf2-8b1d-42c2-e872-cabf9cde48db" data-execution_count="95">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb70" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb70-1"><span class="bu" style="color: null;">getattr</span>(a, <span class="st" style="color: #20794D;">'b'</span>)</span></code></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="95">
+<div class="cell-output cell-output-display">
 <pre><code>2</code></pre>
 </div>
 </div>
 <p>I’ll actually that’ll be yes our calls get a b and this can kind of be fun because you could call, <strong>getattr</strong> a comma and either b or a randomly . So if I run this 21112 as you can say, it’s random. So yeah, Python such a dynamic language, you can even set it up so it literally don’t know what attributes are going to be called. Now getattr behind the scenes. It’s actually calling something called <strong>getattr</strong> and by default it’ll use the version in the object based class. So here’s something just like a it’s got a and b defined, but I’ve also got time getattr defined and so <strong>getattr</strong> It’s only called for stuff that hasn’t been defined yet and it’ll pass in the key of the the name of the attribute. So generally speaking, if the first character is an underscore, it’s going to be private or special. So That’s going to raise an attribute error. Otherwise I’m going to steal it and return hello from k. So if I go b.athat’s defined so it gives me one. If I go b.foo, that’s not defined. So calls <strong>getattr</strong> and I get back hello from foo. And so this gets used a lot in both fastai code and also huggingface code to you know often make it more convenient to access things. So that’s yeah that’s how we getattr function and <strong>getattr</strong> method work.</p>
-<div class="cell" data-outputid="58dec279-8efa-4827-bc7f-0b5de2250f35" data-execution_count="96">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb72" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb72-1"><span class="bu" style="color: null;">getattr</span>(a, <span class="st" style="color: #20794D;">'b'</span> <span class="cf" style="color: #003B4F;">if</span> random.random()<span class="op" style="color: #5E5E5E;">&gt;</span><span class="fl" style="color: #AD0000;">0.5</span> <span class="cf" style="color: #003B4F;">else</span> <span class="st" style="color: #20794D;">'a'</span>)</span></code></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="96">
+<div class="cell-output cell-output-display">
 <pre><code>1</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="97">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb74" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb74-1"><span class="kw" style="color: #003B4F;">class</span> B:</span>
 <span id="cb74-2">    a,b<span class="op" style="color: #5E5E5E;">=</span><span class="dv" style="color: #AD0000;">1</span>,<span class="dv" style="color: #AD0000;">2</span></span>
 <span id="cb74-3">    <span class="kw" style="color: #003B4F;">def</span> <span class="fu" style="color: #4758AB;">__getattr__</span>(<span class="va" style="color: #111111;">self</span>, k):</span>
 <span id="cb74-4">        <span class="cf" style="color: #003B4F;">if</span> k[<span class="dv" style="color: #AD0000;">0</span>]<span class="op" style="color: #5E5E5E;">==</span><span class="st" style="color: #20794D;">'_'</span>: <span class="cf" style="color: #003B4F;">raise</span> <span class="pp" style="color: #AD0000;">AttributeError</span>(k)</span>
 <span id="cb74-5">        <span class="cf" style="color: #003B4F;">return</span> <span class="ss" style="color: #20794D;">f'Hello from </span><span class="sc" style="color: #5E5E5E;">{</span>k<span class="sc" style="color: #5E5E5E;">}</span><span class="ss" style="color: #20794D;">'</span></span></code></pre></div>
 </div>
-<div class="cell" data-execution_count="98">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb75" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb75-1">b <span class="op" style="color: #5E5E5E;">=</span> B()</span></code></pre></div>
 </div>
-<div class="cell" data-outputid="6255df91-4fc7-4bc2-c636-c917de6ad968" data-execution_count="99">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb76" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb76-1">b.a</span></code></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="99">
+<div class="cell-output cell-output-display">
 <pre><code>1</code></pre>
 </div>
 </div>
-<div class="cell" data-outputid="50111d78-52c1-4016-f99e-150d4439ed27" data-execution_count="100">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb78" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb78-1">b.foo</span></code></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="100">
+<div class="cell-output cell-output-display">
 <pre><code>'Hello from foo'</code></pre>
 </div>
 </div>
